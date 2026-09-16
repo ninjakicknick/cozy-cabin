@@ -1,0 +1,1 @@
+Replace the zero-byte assets/fireplace.mp4 placeholder with the uploaded 436x436 H.264 fireplace animation before merging this branch.
