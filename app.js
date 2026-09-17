@@ -7,35 +7,35 @@ const order=['books','fire','chair','window','record','cat'],catLines=['A sleepy
 // when it came from a gesture, so never permanently mark audio as started too early.
 const windSrc='assets/audio/winter-wind-loop.mp3',windA=new Audio(windSrc),windB=new Audio(windSrc);
 const ambience={ready:false,starting:false,fire:new Audio('assets/audio/fireplace-loop.mp3'),wind:windA,windLevel:.01};
-ambience.fire.loop=true;ambience.fire.preload='auto';windA.preload=windB.preload='auto';windA.loop=windB.loop=false;
-const windCrossfade={active:windA,standby:windB,seconds:3,running:false,raf:0};
+ambience.fire.loop=true;ambience.fire.preload='auto';windA.preload=windB.preload='auto';windA.loop=windB.loop=true;
+const windCrossfade={active:windA,standby:windB,seconds:3,running:false,timer:0};
 function setWindLevel(level){ambience.windLevel=level;if(!windCrossfade.running)windCrossfade.active.volume=level}
-function scheduleWindCrossfade(){
+function armWindCrossfade(){
+  clearTimeout(windCrossfade.timer);
   const active=windCrossfade.active;
   if(!Number.isFinite(active.duration)||active.duration<=windCrossfade.seconds)return;
-  const remaining=active.duration-active.currentTime;
-  if(remaining<=windCrossfade.seconds+.08&&!windCrossfade.running)startWindCrossfade();
+  const delay=Math.max(0,(active.duration-active.currentTime-windCrossfade.seconds)*1000);
+  windCrossfade.timer=setTimeout(startWindCrossfade,delay);
 }
-function startWindCrossfade(){
+async function startWindCrossfade(){
+  if(windCrossfade.running)return;
   const from=windCrossfade.active,to=windCrossfade.standby,duration=windCrossfade.seconds*1000,started=performance.now();
   windCrossfade.running=true;to.currentTime=0;to.volume=0;
-  const play=to.play();if(play?.catch)play.catch(()=>{windCrossfade.running=false});
+  try{await to.play()}catch(e){windCrossfade.running=false;from.loop=true;from.volume=ambience.windLevel;armWindCrossfade();return}
   function step(now){
     if(!windCrossfade.running)return;
     const p=Math.min(1,(now-started)/duration),level=ambience.windLevel;
     from.volume=level*Math.cos(p*Math.PI/2);to.volume=level*Math.sin(p*Math.PI/2);
-    if(p<1){windCrossfade.raf=requestAnimationFrame(step);return}
+    if(p<1){requestAnimationFrame(step);return}
     from.pause();from.currentTime=0;from.volume=0;
-    windCrossfade.active=to;windCrossfade.standby=from;ambience.wind=to;windCrossfade.running=false;to.volume=level;
+    windCrossfade.active=to;windCrossfade.standby=from;ambience.wind=to;windCrossfade.running=false;to.volume=level;armWindCrossfade();
   }
-  windCrossfade.raf=requestAnimationFrame(step);
+  requestAnimationFrame(step);
 }
-windA.addEventListener('timeupdate',scheduleWindCrossfade);windB.addEventListener('timeupdate',scheduleWindCrossfade);
-windA.addEventListener('ended',()=>{if(!windCrossfade.running){windA.currentTime=0;windA.play().catch(()=>{})}});
-windB.addEventListener('ended',()=>{if(!windCrossfade.running){windB.currentTime=0;windB.play().catch(()=>{})}});
+[windA,windB].forEach(w=>w.addEventListener('loadedmetadata',()=>{if(w===windCrossfade.active&&!windCrossfade.running)armWindCrossfade()}));
 const ambientMix={room:{fire:.34,wind:.18},fire:{fire:.72,wind:.08},window:{fire:.12,wind:.48},books:{fire:.27,wind:.13},chair:{fire:.31,wind:.14},record:{fire:.22,wind:.12},cat:{fire:.25,wind:.13}};
 function mixAmbience(place='room',seconds=1.8){if(!ambience.ready)return;const mix=ambientMix[place]||ambientMix.room,started=performance.now(),duration=seconds*1000,fireStart=ambience.fire.volume,windStart=ambience.windLevel;function step(now){const p=Math.min(1,(now-started)/duration),ease=p*p*(3-2*p);ambience.fire.volume=fireStart+(mix.fire-fireStart)*ease;setWindLevel(windStart+(mix.wind-windStart)*ease);if(p<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
-async function startAmbience(){if(ambience.ready||ambience.starting)return;ambience.starting=true;ambience.fire.volume=.01;setWindLevel(.01);try{await Promise.all([ambience.fire.paused?ambience.fire.play():Promise.resolve(),windCrossfade.active.paused?windCrossfade.active.play():Promise.resolve()]);if(!ambience.fire.paused&&!windCrossfade.active.paused){ambience.ready=true;mixAmbience(focused||'room',2.5)}}catch(e){/* A later user gesture will retry. */}finally{ambience.starting=false}}
+async function startAmbience(){if(ambience.ready||ambience.starting)return;ambience.starting=true;ambience.fire.volume=.01;setWindLevel(.01);try{await Promise.all([ambience.fire.paused?ambience.fire.play():Promise.resolve(),windCrossfade.active.paused?windCrossfade.active.play():Promise.resolve()]);if(!ambience.fire.paused&&!windCrossfade.active.paused){ambience.ready=true;armWindCrossfade();mixAmbience(focused||'room',2.5)}}catch(e){/* A later user gesture will retry. */}finally{ambience.starting=false}}
 function wakeAudio(){startAmbience();getAudio()}
 ['pointerdown','touchend','keydown'].forEach(type=>addEventListener(type,wakeAudio,{passive:true}));
 
