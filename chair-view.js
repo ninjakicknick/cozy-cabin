@@ -31,7 +31,7 @@ function leaveChairView(){
   selected=order.indexOf('chair');
   scene.classList.remove('chair-view','floor-view');
   scene.style.transform='';
-  document.querySelectorAll('.spot').forEach(s=>s.classList.toggle('selected',s.dataset.id==='chair'));
+  document.querySelectorAll('.spot').forEach(s=>s.classList.remove('active','selected'));
   caption.classList.remove('show');
   actionPanel.classList.remove('show');
   back.classList.remove('show');
