@@ -20,6 +20,7 @@ export function readMemory(storage,now=Date.now()) {
 }
 export function saveMemory(storage,memory){try{storage.setItem(STORAGE_KEY,JSON.stringify(memory))}catch{}}
 export function parentView(view){return scenes[view]?.parent|| (view==='book'?'books':'room')}
+export function navigationPoints(view,actions=[]){const spec=scenes[view];return Object.fromEntries([...(spec.spots||[]).map(s=>[s.id,[s.x,s.y]]),...actions.map((id,i)=>[`action:${id}`,[50+(i-(actions.length-1)/2)*20,100]])]);}
 export const positions=Object.fromEntries(scenes.room.spots.map(s=>[s.id,[s.x,s.y]]));
 export function neighbor(current,dx,dy,points=positions,fallback='chair') {
   const ids=Object.keys(points);if(!points[current])return points[fallback]?fallback:ids[0];

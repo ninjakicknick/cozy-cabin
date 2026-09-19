@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readMemory,createVisit,advanceWorld } from '../state.js';
+import { readMemory,createVisit,advanceWorld,navigationPoints,neighbor } from '../state.js';
 import { weatherAt,propagation,readLife,rememberTea,teaWarmth,restTrace,localDay } from '../rhythms.js';
 import { CabinAudio } from '../audio.js';
 const now=new Date(2026,8,19,8,0).getTime();
@@ -84,4 +84,24 @@ test('spatial sound buses follow navigation and release every node after events 
  while(finished.length)finished.shift().onended?.();assert.equal(audio.voices.size,0);
  audio.sound('purr',false);assert.equal(audio.voices.size,1);
  while(finished.length)finished.shift().onended?.();assert.equal(audio.voices.size,0);
+});
+
+test('record completion is scheduled in native audio even when animation frames stop',()=>{
+ const sources=[];
+ const source=()=>({connect(){},disconnect(){},start(at,offset){this.offset=offset},stop(at){this.stopAt=at}});
+ const audio=new CabinAudio();audio.ctx={currentTime:10,createBufferSource(){const s=source();sources.push(s);return s}};
+ audio.settings={recordOn:true,life:{recordAt:Date.now()-10000}};
+ audio.layers.set('record',{source:source(),buffer:{duration:64},filter:{},transport:null});
+ audio.recordTransport();assert.equal(sources.length,1);
+ assert.ok(sources[0].stopAt>191&&sources[0].stopAt<=192);
+ assert.ok(sources[0].offset>=10&&sources[0].offset<11);
+ audio.recordTransport();assert.equal(sources.length,1);
+ audio.settings.life.recordAt+=1000;audio.recordTransport();assert.equal(sources.length,2);
+});
+
+test('a cup in the chair is reachable without losing the route to the floor',()=>{
+ const points=navigationPoints('chair',['sip']);
+ assert.equal(neighbor('floor',0,1,points),'action:sip');
+ assert.equal(neighbor('action:sip',0,-1,points),'floor');
+ assert.equal(navigationPoints('chair',[])['action:sip'],undefined);
 });

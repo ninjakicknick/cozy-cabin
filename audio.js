@@ -111,7 +111,9 @@ export class CabinAudio {
     const source=this.ctx.createBufferSource();source.buffer=layer.buffer;source.loop=true;
     source.connect(layer.filter);
     const elapsed=Math.max(0,(Date.now()-(this.settings.life?.recordAt||Date.now()))/1000);
-    source.start(0,elapsed%layer.buffer.duration);layer.source=source;layer.transport=key;
+    source.start(0,elapsed%layer.buffer.duration);
+    source.stop(this.ctx.currentTime+Math.max(.01,192-elapsed));
+    layer.source=source;layer.transport=key;
   }
   positionVoice(voice) {
     const path=propagation(this.view,voice.origin,this.settings.windowOpen);

@@ -1,7 +1,7 @@
 import { teaWarmth, rememberTea } from './rhythms.js?v=50';
-import { CabinAudio } from './audio.js?v=50';
+import { CabinAudio } from './audio.js?v=51';
 import { scenes,actionLabel } from './world.js?v=50';
-import { readMemory,saveMemory,parentView,neighbor,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=50';
+import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=51';
 import { gamepadCommands } from './input.js?v=50';
 import { CabinRenderer } from './renderer.js?v=50';
 import { notebook,paper as paperContent } from './stories.js?v=50';
@@ -22,12 +22,12 @@ function wake(){state.idle=false;stage.classList.remove('idle');clearTimeout(idl
 function syncAudio(){audio.mix(state.view,{...memory,weatherWind:currentWeather.wind,listening:visit.elapsed<visit.listeningUntil})}
 function updateSelected(){
   for(const button of hotspots.querySelectorAll('button'))button.classList.toggle('selected',state.input!=='pointer'&&button.dataset.id===state.selected);
-  for(const [i,button] of [...actions.children].entries())button.classList.toggle('selected',state.input!=='pointer'&&i===state.actionIndex);
+  for(const [i,button] of [...actions.children].entries())button.classList.toggle('selected',state.input!=='pointer'&&(scenes[state.view].spots?state.selected===`action:${button.dataset.action}`:i===state.actionIndex));
 }
-function availableActions(){const spec=scenes[state.view];return [...(spec.actions||[]),...(!spec.spots&&spec.rest&&teaWarmth(memory)>0?['sip']:[])]}
+function availableActions(){const spec=scenes[state.view];return [...(spec.actions||[]),...(spec.rest&&teaWarmth(memory)>0?['sip']:[])]}
 function renderControls(){
   state.actionIndex=Math.min(state.actionIndex,Math.max(0,availableActions().length-1));
-  const spec=scenes[state.view];hotspots.replaceChildren();actions.replaceChildren();
+  const spec=scenes[state.view];if(spec.spots&&!navigationPoints(state.view,availableActions())[state.selected])state.selected=spec.default;hotspots.replaceChildren();actions.replaceChildren();
   for(const item of spec.spots||[]){
     const button=document.createElement('button');button.className=`spot${item.edge?' edge':''}`;button.dataset.id=item.id;if(item.x>80)button.classList.add('label-left');if(item.x<15)button.classList.add('label-right');button.setAttribute('aria-label',item.label);
     button.style.cssText=`--x:${item.x}%;--y:${item.y}%;--w:${item.w||8}%;--h:${item.h||13}%;`;
@@ -86,7 +86,7 @@ function act(){
   if(state.loading)return;wake();audio.wake();
   if(state.modal==='book'){turnPage(state.page===notebook.length-1?-state.page:1);return}
   if(state.modal){if(state.modal==='tin'){closeModal();perform('musicbox')}else closeModal();return}
-  const spec=scenes[state.view];if(spec.spots?.length){const item=spec.spots.find(s=>s.id===state.selected)||spec.spots.find(s=>s.id===spec.default)||spec.spots[0];activate(item)}
+  const spec=scenes[state.view];if(spec.spots&&state.selected?.startsWith('action:')){perform(state.selected.slice(7));return}if(spec.spots?.length){const item=spec.spots.find(s=>s.id===state.selected)||spec.spots.find(s=>s.id===spec.default)||spec.spots[0];activate(item)}
   else if(availableActions().length)perform(availableActions()[state.actionIndex]||availableActions()[0]);
 }
 function perform(id){
@@ -110,7 +110,7 @@ function perform(id){
     case 'quilt':memory.quilt=!memory.quilt;audio.sound('page');say(memory.quilt?'The roof creaks softly above you.':'You fold it neatly at your feet.');break;
     case 'listen':say('');visit.listeningUntil=visit.elapsed+45;break;
     case 'sip':if(now-memory.life.sippedAt<8000){say('You hold the cup a little longer.');break}memory.life.sippedAt=now;memory.life.teaPlace=state.view;audio.sound('cup');say(teaWarmth(memory)>.65?'Still a little too hot.':teaWarmth(memory)>.25?'Just warm enough.':'The last sip has gone cool.');break;
-    case 'chime':audio.sound('chime');scene.classList.remove('chime-touched');void scene.offsetWidth;scene.classList.add('chime-touched');break;
+    case 'chime':audio.sound('chime',false);scene.classList.remove('chime-touched');void scene.offsetWidth;scene.classList.add('chime-touched');break;
     case 'bowl':memory.birdAt=now;memory.life.fedAt=now;audio.sound('page');say('A few seeds beneath the snow.');break;
     case 'scope':memory.scopeSharp=!memory.scopeSharp;say(memory.scopeSharp?'There. Between the trees.':'The far shore softens.');audio.sound('needle');break;
     case 'compass':audio.sound('needle');say(memory.postcardRead?'The needle settles toward the lake. It takes its time.':'The brass is warm. The needle is in no hurry.');break;
@@ -118,7 +118,7 @@ function perform(id){
     case 'postcard':memory.postcardRead=true;openPaper(id);break;
     case 'letter':memory.letterRead=true;openPaper(id);break;
     case 'tin':memory.tinVisits++;openPaper(id);break;
-    case 'musicbox':memory.musicbox=!memory.musicbox;visit.musicUntil=visit.elapsed+20;visit.nextMusic=visit.elapsed+6;if(memory.musicbox)audio.sound('musicbox');else audio.sound('needle');break;
+    case 'musicbox':memory.musicbox=!memory.musicbox;visit.musicUntil=visit.elapsed+20;visit.nextMusic=visit.elapsed+6;if(memory.musicbox)audio.sound('musicbox',false);else audio.sound('needle');break;
     case 'boat':memory.boatMoved=!memory.boatMoved;audio.sound('wood');say(memory.boatMoved?'You turn the little bow toward the window.':'It fits the old mark in the dust.');break;
     case 'recipe':case 'bench':case 'photograph':openPaper(id);break;
   }
@@ -128,7 +128,7 @@ function navigate(dx,dy){
   wake();if(state.loading)return;
   if(state.modal==='book'){if(dx)turnPage(dx);return}if(state.modal)return;
   document.activeElement?.blur?.();
-  const spec=scenes[state.view];if(spec.spots){const points=Object.fromEntries(spec.spots.map(s=>[s.id,[s.x,s.y]]));state.selected=neighbor(state.selected,dx,dy,points,spec.default)}
+  const spec=scenes[state.view];if(spec.spots){const points=navigationPoints(state.view,availableActions());state.selected=neighbor(state.selected,dx,dy,points,spec.default)}
   else if(availableActions().length>1){state.actionIndex=(state.actionIndex+(dx||dy)+availableActions().length)%availableActions().length}
   updateSelected();
 }

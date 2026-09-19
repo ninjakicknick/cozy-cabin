@@ -63,3 +63,8 @@ Weather fronts are smoothly interpolated from wall time and a persistent seed, i
 Sound events have physical origins, filtered and attenuated through cabin connections. Moving rooms also moves the listening position of ongoing sounds. Opening the window changes the acoustic route rather than making every room equally loud. Listening no longer summons an owl or bell on command. A node-lifecycle regression test catches leaked event buses; finite record playback retains seamless source loops inside a side.
 
 Pre-publication verification: 21 tests pass, including simulated long idle, weather boundary continuity, old-save migration, absence versus active dwell, recurring routine/cooldown persistence, record completion, directional input and source propagation/cleanup. Live verification follows deployment. Physical controller and speaker listening remain unverified.
+
+
+Live Chrome verification: the new module graph loaded; kettle → upstairs rest → reload resumed the resting view with weather unchanged. The stage entered its quiet/settled state after uninterrupted rest. Returning downstairs preserved kettle readiness and pouring tea succeeded. No app-origin console errors appeared in these exercised flows; browser-extension metadata errors were excluded.
+
+Walkthrough follow-up: contextual tea actions now participate in the same spatial navigation as room hotspots, including the armchair. Native audio schedules record completion even when page animation stops. Interacted-with chimes and the music mechanism retain their physical origin as the listener moves away. All 23 tests pass, including these two regression cases.
