@@ -32,7 +32,7 @@ function renderControls(){
     button.addEventListener('click',()=>{state.selected=item.id;activate(item)});hotspots.append(button);
   }
   for(const id of spec.actions||[]){const button=document.createElement('button');button.className='quiet-control';button.dataset.action=id;button.textContent=actionLabel(id,memory);button.addEventListener('click',()=>perform(id));actions.append(button)}
-  actions.hidden=!spec.actions?.length;$('#back').hidden=state.view==='room';$('#back').setAttribute('aria-label',state.view==='floor'?'Sit back up':`Return to ${scenes[parentView(state.view)].label.toLowerCase()}`);
+  actions.hidden=!spec.actions?.length;$('#back').hidden=state.view==='room';$('#back').setAttribute('aria-label',state.view==='floor'?'Sit back up':`Back — ${scenes[parentView(state.view)].label}`);
   $('#sound').textContent=memory.muted?'Sound off':'Sound on';$('#sound').setAttribute('aria-pressed',String(!memory.muted));updateSelected();
 }
 function refresh(){
@@ -158,5 +158,6 @@ function frame(now){
   }
   requestAnimationFrame(frame);
 }
+syncAudio();
 renderer.load('room').then(()=>go('room')).catch(()=>say('The cabin could not load. Please refresh.'));
 requestAnimationFrame(frame);

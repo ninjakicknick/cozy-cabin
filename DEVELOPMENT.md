@@ -40,4 +40,13 @@ The scene graph owns exits, hotspot geometry and actions; all input devices use 
 
 The soundscape adds a second original record side, synthesized environmental motifs and more distant/occluded mixes upstairs and outside. Weather changes gradually and snow is restricted to outdoor regions. There is no inventory, task list, reward counter or required path.
 
-Pre-publication checks: 12 Node tests pass, including asset/exits integrity, spatial reachability for every hotspot, nested back routes, gamepad edge/repeat/disconnect handling, saved appliance timing, rare-event cooldown, old-save migration, one hour of simulated idle behavior, and seamless audio sample boundaries. Browser checks are recorded below once deployment is available. Physical hardware and subjective listening remain outside this environment's verification.
+Pre-publication checks: 12 Node tests pass, including asset/exits integrity, spatial reachability for every hotspot, nested back routes, gamepad edge/repeat/disconnect handling, saved appliance timing, rare-event cooldown, old-save migration, one hour of simulated idle behavior, and seamless audio sample boundaries. Live browser checks are recorded below. Physical hardware and subjective listening remain outside this environment's verification.
+
+
+## Expansion browser verification
+
+Tested the published application through kitchen, drawer, loft, cupboard, resting space, telescope, boot room and porch. Pointer and keyboard routes, paper open/close, secondary object actions, lamp image variants and kettle readiness across rooms all worked. The loft lamp state survived a full reload. Idle controls faded on the porch. Original chair → floor → chair navigation remains functional; only the current scene video played.
+
+Checked the actual application in the viewport fixture at 390 × 844 and 844 × 390. The kitchen composition fits without cropping away exits, and paper readers remain readable with reachable close controls and scrolling on shorter screens. These are browser viewport checks, not physical touch-device tests. Audio reached its ready state; no application-origin errors were observed during the main walkthrough. Rare event timing and one-hour stability were checked in deterministic unit tests, not an hour-long live browser session.
+
+Final cleanup applies saved sound settings before the initial image decode and gives nested Back controls grammatical accessible labels. All 12 automated checks still pass. Physical controller, television performance and speaker/headphone listening remain unverified.
