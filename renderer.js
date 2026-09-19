@@ -1,4 +1,5 @@
-import { art, scenes } from './world.js?v=40';
+import { fireWarmth, teaWarmth } from './rhythms.js?v=50';
+import { art, scenes } from './world.js?v=50';
 export class CabinRenderer {
   constructor(scene,weather) {
     this.scene=scene;this.canvas=weather;this.ctx=weather.getContext('2d');
@@ -48,7 +49,13 @@ export class CabinRenderer {
   environment(memory,visit,weather) {
     this.weather=weather;const base=scenes[this.view].art;
     this.scene.classList.toggle('lamp-off',base==='loft'&&!memory.loftLamp||base==='porch'&&!memory.porchLamp);
-    this.scene.classList.toggle('tea-warm',Boolean(memory.teaAt&&Date.now()-memory.teaAt<300000));
+    this.scene.classList.toggle('tea-warm',teaWarmth(memory)>.4);
+    this.scene.style.setProperty('--tea-heat',teaWarmth(memory));
+    this.scene.style.setProperty('--ember-light',.1+fireWarmth(memory)*.22);
+    this.scene.style.setProperty('--night-depth',weather.night*.065);
+    this.scene.classList.toggle('cat-near',visit.elapsed<visit.catUntil);
+    this.scene.classList.toggle('clear-air',weather.hush);
+    this.scene.classList.toggle('seed-traces',Boolean(memory.life.fedAt&&Date.now()-memory.life.fedAt<86400000));
     this.scene.classList.toggle('kettle-warm',Boolean(memory.kettleAt));
     this.scene.classList.toggle('record-playing',memory.recordOn);
     this.scene.classList.toggle('well-tended',memory.emberUntil>Date.now());
@@ -69,8 +76,8 @@ export class CabinRenderer {
     const polygon=art[scenes[this.view].art].snow;
     if(!polygon||document.hidden||this.motion.matches)return;
     ctx.save();ctx.beginPath();polygon.forEach(([x,y],i)=>i?ctx.lineTo(x*w/100,y*h/100):ctx.moveTo(x*w/100,y*h/100));ctx.closePath();ctx.clip();
-    ctx.fillStyle='#dce8f4';const count=Math.round(this.flakes.length*this.weather.snow);
-    for(let i=0;i<count;i++){const p=this.flakes[i];p.y=(p.y+p.s*dt)%1;p.x=(p.x+dt*(.012*this.weather.wind)+1)%1;ctx.globalAlpha=.12+p.r*.09;ctx.beginPath();ctx.arc(p.x*w,p.y*h,p.r,0,Math.PI*2);ctx.fill()}
+    ctx.fillStyle='#dce8f4';const count=Math.ceil(this.flakes.length*this.weather.snow);
+    for(let i=0;i<count;i++){const p=this.flakes[i];p.y=(p.y+p.s*dt)%1;p.x=(p.x+dt*(.012*this.weather.wind)+1)%1;ctx.globalAlpha=(.12+p.r*.09)*Math.min(1,count-i)*Math.min(1,Math.max(0,this.weather.snow*this.flakes.length-i));ctx.beginPath();ctx.arc(p.x*w,p.y*h,p.r,0,Math.PI*2);ctx.fill()}
     ctx.restore();
   }
 }

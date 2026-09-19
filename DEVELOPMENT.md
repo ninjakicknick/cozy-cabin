@@ -50,3 +50,16 @@ Tested the published application through kitchen, drawer, loft, cupboard, restin
 Checked the actual application in the viewport fixture at 390 × 844 and 844 × 390. The kitchen composition fits without cropping away exits, and paper readers remain readable with reachable close controls and scrolling on shorter screens. These are browser viewport checks, not physical touch-device tests. Audio reached its ready state; no application-origin errors were observed during the main walkthrough. Rare event timing and one-hour stability were checked in deterministic unit tests, not an hour-long live browser session.
 
 Final cleanup applies saved sound settings before the initial image decode and gives nested Back controls grammatical accessible labels. All 12 automated checks still pass. Physical controller, television performance and speaker/headphone listening remain unverified.
+
+
+# Time to stay — rhythms pass
+
+No additional rooms or artwork. Reviewed the published experience and the expansion's timing, state, renderer and audio architecture. Previously weather restarted on visits, sounds were often chosen for the current viewpoint, records looped indefinitely, and sitting left little persistent trace.
+
+Added a validated local `life` memory within the existing save. Resting time, physical habits and sparse recurring events survive visits. A short interruption resumes the last resting place; longer absences return to the main room. Memory stays on the device, with no account, telemetry, streaks, obligation or decay of familiarity. Thirty-second checkpoints replace continuous storage writes; actions and exit also save.
+
+Weather fronts are smoothly interpolated from wall time and a persistent seed, independent of reloads. Subtle light uses the device's local hour without pretending the existing evening paintings are midday scenes. Tea cools, the fire settles but never becomes a maintenance task, record sides finish, and the music mechanism winds down. Resting time only accrues while the page is visible and the viewer is actually in the place, not in an object reader. Distant-light and writing variations deepen existing motifs with persistent cooldowns.
+
+Sound events have physical origins, filtered and attenuated through cabin connections. Moving rooms also moves the listening position of ongoing sounds. Opening the window changes the acoustic route rather than making every room equally loud. Listening no longer summons an owl or bell on command. A node-lifecycle regression test catches leaked event buses; finite record playback retains seamless source loops inside a side.
+
+Pre-publication verification: 21 tests pass, including simulated long idle, weather boundary continuity, old-save migration, absence versus active dwell, recurring routine/cooldown persistence, record completion, directional input and source propagation/cleanup. Live verification follows deployment. Physical controller and speaker listening remain unverified.
