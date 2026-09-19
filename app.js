@@ -1,11 +1,11 @@
-import { clockAction, canEnter } from './clock.js?v=64';
-import { teaWarmth, rememberTea } from './rhythms.js?v=64';
-import { CabinAudio } from './audio.js?v=64';
-import { scenes,actionLabel,visibleSpots } from './world.js?v=64';
-import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=64';
-import { gamepadCommands } from './input.js?v=64';
-import { CabinRenderer } from './renderer.js?v=64';
-import { notebook,paper as paperContent } from './stories.js?v=64';
+import { clockAction, canEnter } from './clock.js?v=65';
+import { teaWarmth, rememberTea } from './rhythms.js?v=65';
+import { CabinAudio } from './audio.js?v=65';
+import { scenes,actionLabel,visibleSpots } from './world.js?v=65';
+import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=65';
+import { gamepadCommands } from './input.js?v=65';
+import { CabinRenderer } from './renderer.js?v=65';
+import { notebook,paper as paperContent } from './stories.js?v=65';
 const $=s=>document.querySelector(s),stage=$('#stage'),scene=$('#scene'),hotspots=$('#hotspots'),actions=$('#actions');
 const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchParams(location.search).get('testVisit')==='clock'?{getItem:()=>sessionStorage.getItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default')),setItem:(_,v)=>sessionStorage.setItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default'),v)}:localStorage}catch{}
 const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);

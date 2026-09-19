@@ -1,4 +1,4 @@
-import { clockLabel } from './clock.js?v=64';
+import { clockLabel } from './clock.js?v=65';
 // Scene coordinates are percentages in the original artwork, independent of screen size.
 // A scene owns its exits and objects; input devices all use the same definitions.
 const spot = (id, label, x, y, target, kind = 'go', extra = {}) => ({id,label,x,y,[kind]:target,...extra});
@@ -12,7 +12,7 @@ export const art = {
   loft:{night:'assets/scenes/loft-night.webp',src:'assets/scenes/loft.webp',alt:'A low sleeping loft with a writing desk, telescope and a little cupboard under the eaves',snow:[[44,18],[54,0],[72,20],[72,39],[44,39]],lights:[68,30.7]},
   eaves:{src:'assets/scenes/eaves.webp',alt:'A small wool-lined hiding place under the roof, looking through a round window',snow:[[48,25],[55,25],[58,33],[58,44],[52,50],[46,45],[44,35]]},
   clockWall:{unlit:'assets/scenes/clock-wall-unlit.webp',src:'assets/scenes/clock-wall.webp',alt:'A walnut wall clock between the bookshelves and the stone chimney',variant:{unlit:'assets/scenes/clock-open-unlit.webp',src:'assets/scenes/clock-open.webp',state:'secret-open'}},
-  snugBed:{unlit:'assets/scenes/snug-bed-unlit.webp',src:'assets/scenes/snug-bed.webp',alt:'Lying on the daybed, looking up through the timber-framed glass roof at snowy pines',snowPanes:[[[11,0],[28,0],[30,32],[15,25]],[[34,0],[65,0],[60,46],[35,36]],[[72,0],[97,0],[85,56],[65,48]],[[16,31],[30,37],[31,62],[19,56]],[[35,42],[59,51],[56,74],[35,65]],[[65,55],[83,61],[78,87],[61,78]]]},
+  snugBed:{unlit:'assets/scenes/snug-bed-lights-out.webp',src:'assets/scenes/snug-bed.webp',alt:'Lying on the daybed, looking up through the timber-framed glass roof at snowy pines',snowPanes:[[[11,0],[28,0],[30,32],[15,25]],[[34,0],[65,0],[60,46],[35,36]],[[72,0],[97,0],[85,56],[65,48]],[[16,31],[30,37],[31,62],[19,56]],[[35,42],[59,51],[56,74],[35,65]],[[65,55],[83,61],[78,87],[61,78]]]},
   snug:{unlit:'assets/scenes/snug-unlit.webp',src:'assets/scenes/snug.webp',alt:'A small wool-lined room behind the warm chimney, beneath a sloping glass roof',snow:[[23,0],[73,0],[69,29],[29,20]]},
   drawer:{src:'assets/scenes/drawer.webp',alt:'An open kitchen drawer containing recipe cards, a postcard and an old brass compass'},
 };

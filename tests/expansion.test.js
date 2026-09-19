@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync,statSync } from 'node:fs';
 import { scenes,art } from '../world.js';
 import { parentView,neighbor,readMemory,createVisit,advanceWorld,kettleState,weatherAt } from '../state.js';
 import { gamepadCommands } from '../input.js';
 
 test('all scene assets exist, exits resolve, and every scene has a finite route home',()=>{
  for(const [id,s] of Object.entries(scenes)){
-  assert.ok(art[s.art],id);assert.ok(existsSync(art[s.art].src));if(art[s.art].night)assert.ok(existsSync(art[s.art].night));if(art[s.art].unlit)assert.ok(existsSync(art[s.art].unlit));if(art[s.art].variant?.unlit)assert.ok(existsSync(art[s.art].variant.unlit));
+  assert.ok(art[s.art],id);assert.ok(existsSync(art[s.art].src));if(art[s.art].night)assert.ok(existsSync(art[s.art].night));if(art[s.art].unlit)assert.ok(statSync(art[s.art].unlit).size>1000);if(art[s.art].variant?.unlit)assert.ok(statSync(art[s.art].variant.unlit).size>1000);
   for(const spot of s.spots||[])if(spot.go)assert.ok(scenes[spot.go],`${id}/${spot.id}`);
   let at=id,seen=new Set();while(at!=='room'){assert.ok(!seen.has(at),`parent cycle ${id}`);seen.add(at);at=parentView(at)}
  }

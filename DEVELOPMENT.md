@@ -83,3 +83,5 @@ The room uses the same rest/tea/weather persistence and physical sound graph as 
 
 ## Firelight evenings
 Added one persistent cabin lights control (pointer/touch, L, controller Y), with registered unlit artwork for the fireplace views and adjacent rooms. Existing fireplace videos and masks remain unchanged. The key and concealed doorway have matching unlit states; lantern projections pause in darkness without forgetting the mechanism state. Existing loft/porch lamps still work individually. The brighter lantern from PR36 is preserved. Thirty automated tests pass, including lighting persistence and controller button edges.
+
+Live verification checked pointer/L toggles, the three fireplace viewpoints with video still playing, reload persistence, kitchen and key-removal state, and the concealed-door animation in darkness. Browser verification caught an empty encoded bed-lighting asset; it was re-encoded under a fresh filename and all ten new images were fully decoded to verify them. Asset tests now reject empty lighting files.

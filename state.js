@@ -1,7 +1,7 @@
-import { readClock } from './clock.js?v=64';
-import { readLife, weatherAt, restingPlaces, restTrace, localDay } from './rhythms.js?v=64';
+import { readClock } from './clock.js?v=65';
+import { readLife, weatherAt, restingPlaces, restTrace, localDay } from './rhythms.js?v=65';
 export { weatherAt };
-import { scenes,visibleSpots } from './world.js?v=64';
+import { scenes,visibleSpots } from './world.js?v=65';
 export const STORAGE_KEY = 'cozy-cabin.memory.v1';
 const integer=(value,min,max,fallback=0)=>Number.isInteger(value)?Math.max(min,Math.min(max,value)):fallback;
 export function readMemory(storage,now=Date.now()) {
