@@ -22,6 +22,7 @@ const pages = [
 let captionTimer, idleTimer, petUntil = 0, lastFrame = performance.now(), quietTime = 0;
 let glimmerUntil = 0, nextGlimmer = performance.now() + 65000 + Math.random() * 60000;
 const audio = new CabinAudio(ok => {
+  stage.dataset.audio = ok ? 'ready' : 'retry';
   $('#sound').classList.toggle('unavailable', !ok);
   $('#sound').title = ok ? 'Sound · M' : 'Sound could not start. Tap to retry.';
 });
@@ -70,6 +71,9 @@ function updateControls() {
 function updateVideos() {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const visible = state.view === 'chair' ? 'chair' : state.view === 'floor' ? 'floor' : 'room';
+  for (const image of scene.querySelectorAll(':scope > img')) {
+    image.setAttribute('aria-hidden', String(image.id !== `${visible}-view`));
+  }
   for (const video of document.querySelectorAll('video')) {
     const active = video.dataset.view === visible && !document.hidden && !reduced;
     if (active) video.play().catch(() => {}); else video.pause();
