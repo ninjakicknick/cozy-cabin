@@ -1,16 +1,17 @@
-import { teaWarmth, rememberTea } from './rhythms.js?v=50';
-import { CabinAudio } from './audio.js?v=51';
-import { scenes,actionLabel } from './world.js?v=50';
-import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=51';
-import { gamepadCommands } from './input.js?v=50';
-import { CabinRenderer } from './renderer.js?v=50';
-import { notebook,paper as paperContent } from './stories.js?v=50';
+import { clockAction, canEnter } from './clock.js?v=60';
+import { teaWarmth, rememberTea } from './rhythms.js?v=60';
+import { CabinAudio } from './audio.js?v=60';
+import { scenes,actionLabel,visibleSpots } from './world.js?v=60';
+import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=60';
+import { gamepadCommands } from './input.js?v=60';
+import { CabinRenderer } from './renderer.js?v=60';
+import { notebook,paper as paperContent } from './stories.js?v=60';
 const $=s=>document.querySelector(s),stage=$('#stage'),scene=$('#scene'),hotspots=$('#hotspots'),actions=$('#actions');
-const book=$('#book'),paper=$('#paper');let storage;try{storage=localStorage}catch{}
+const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchParams(location.search).get('testVisit')==='clock'?{getItem:()=>sessionStorage.getItem('cozy-cabin.test.clock'),setItem:(_,v)=>sessionStorage.setItem('cozy-cabin.test.clock',v)}:localStorage}catch{}
 const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
 const visit=createVisit(Date.now()^memory.visits,memory);
 if(memory.recordOn&&!memory.life.recordAt)memory.life.recordAt=Date.now();
-const arrival=memory.life.lastRest&&Date.now()-memory.life.lastSeen<20*60000?memory.life.lastRest:'room';
+const arrival=memory.life.lastRest&&canEnter(memory.life.lastRest,memory)&&Date.now()-memory.life.lastSeen<20*60000?memory.life.lastRest:'room';
 const state={view:'room',selected:null,input:'pointer',idle:false,page:memory.page,modal:null,loading:false,actionIndex:0};
 const renderer=new CabinRenderer(scene,$('#weather'));
 const audio=new CabinAudio(ok=>{stage.dataset.audio=ok?'ready':'retry';$('#sound').title=ok?'Sound · M':'Sound could not start. Tap to retry.'});
@@ -27,8 +28,8 @@ function updateSelected(){
 function availableActions(){const spec=scenes[state.view];return [...(spec.actions||[]),...(spec.rest&&teaWarmth(memory)>0?['sip']:[])]}
 function renderControls(){
   state.actionIndex=Math.min(state.actionIndex,Math.max(0,availableActions().length-1));
-  const spec=scenes[state.view];if(spec.spots&&!navigationPoints(state.view,availableActions())[state.selected])state.selected=spec.default;hotspots.replaceChildren();actions.replaceChildren();
-  for(const item of spec.spots||[]){
+  const spec=scenes[state.view];if(spec.spots&&!navigationPoints(state.view,availableActions(),memory)[state.selected])state.selected=spec.default;hotspots.replaceChildren();actions.replaceChildren();
+  for(const item of visibleSpots(state.view,memory)){
     const button=document.createElement('button');button.className=`spot${item.edge?' edge':''}`;button.dataset.id=item.id;if(item.x>80)button.classList.add('label-left');if(item.x<15)button.classList.add('label-right');button.setAttribute('aria-label',item.label);
     button.style.cssText=`--x:${item.x}%;--y:${item.y}%;--w:${item.w||8}%;--h:${item.h||13}%;`;
     const label=document.createElement('span');label.textContent=item.label;button.append(label);
@@ -51,11 +52,11 @@ function refresh(){
   save();syncAudio();
 }
 async function go(view){
-  if(!scenes[view])return;const token=++goToken;state.loading=true;stage.setAttribute('aria-busy','true');wake();
+  if(!scenes[view]||!canEnter(view,memory))return;const token=++goToken;state.loading=true;stage.setAttribute('aria-busy','true');wake();
   try{
     if(!await renderer.show(view)||token!==goToken)return;
     const previous=state.view;state.view=view;state.actionIndex=0;state.selected=scenes[view].default||null;visit.still=0;
-    if(previous!==view)audio.sound(['porch','mudroom'].includes(view)?'wood':'step');
+    if(previous!==view)audio.sound(['porch','mudroom','snug'].includes(view)?'wood':'step');
     closeModal(false);say('');stage.dataset.view=view;stage.setAttribute('aria-label',scenes[view].label);
     $('#scope-mask').hidden=!scenes[view].scope;
     if(document.activeElement instanceof HTMLElement)document.activeElement.blur();
@@ -86,12 +87,26 @@ function act(){
   if(state.loading)return;wake();audio.wake();
   if(state.modal==='book'){turnPage(state.page===notebook.length-1?-state.page:1);return}
   if(state.modal){if(state.modal==='tin'){closeModal();perform('musicbox')}else closeModal();return}
-  const spec=scenes[state.view];if(spec.spots&&state.selected?.startsWith('action:')){perform(state.selected.slice(7));return}if(spec.spots?.length){const item=spec.spots.find(s=>s.id===state.selected)||spec.spots.find(s=>s.id===spec.default)||spec.spots[0];activate(item)}
+  const spec=scenes[state.view];if(spec.spots&&state.selected?.startsWith('action:')){perform(state.selected.slice(7));return}if(spec.spots?.length){const spots=visibleSpots(state.view,memory);const item=spots.find(s=>s.id===state.selected)||spots.find(s=>s.id===spec.default)||spots[0];if(item)activate(item)}
   else if(availableActions().length)perform(availableActions()[state.actionIndex]||availableActions()[0]);
 }
-function perform(id){
+async function perform(id){
+  if(state.loading)return;
   wake();audio.wake();const now=Date.now();
   switch(id){
+    case 'clockView':go('clockWall');return;
+    case 'key':case 'clock':{
+      const result=clockAction(memory,id);save(true);
+      if(result.sound)audio.sound(result.sound,false);say(result.text||'');
+      if(result.reveal){
+        const token=goToken;state.loading=true;stage.setAttribute('aria-busy','true');
+        refresh();
+        try{await renderer.reveal();}finally{if(goToken===token){state.loading=false;stage.removeAttribute('aria-busy');state.selected='passage';renderControls();wake()}}
+      }else{renderControls();refresh()}
+      return;
+    }
+    case 'lantern':memory.lanternTurning=!memory.lanternTurning;audio.sound('winding');break;
+    case 'toneLow':case 'toneMiddle':case 'toneHigh':audio.sound(id,false);renderer.ring(id);break;
     case 'book':state.modal='book';renderPage();book.showModal();$('#next-page').focus();audio.sound('page');break;
     case 'window':memory.windowOpen=!memory.windowOpen;audio.sound('wood');say(memory.windowOpen?'Cold air. The scent of pine.':'Warmth gathers behind the glass.');break;
     case 'look':go('windowLake');break;
@@ -128,7 +143,7 @@ function navigate(dx,dy){
   wake();if(state.loading)return;
   if(state.modal==='book'){if(dx)turnPage(dx);return}if(state.modal)return;
   document.activeElement?.blur?.();
-  const spec=scenes[state.view];if(spec.spots){const points=navigationPoints(state.view,availableActions());state.selected=neighbor(state.selected,dx,dy,points,spec.default)}
+  const spec=scenes[state.view];if(spec.spots){const points=navigationPoints(state.view,availableActions(),memory);state.selected=neighbor(state.selected,dx,dy,points,spec.default)}
   else if(availableActions().length>1){state.actionIndex=(state.actionIndex+(dx||dy)+availableActions().length)%availableActions().length}
   updateSelected();
 }
@@ -158,7 +173,7 @@ function frame(now){
     const events=advanceWorld(visit,memory,state.view,dt,Date.now(),!state.modal&&!state.loading);
     for(const event of events){if(typeof event==='string')audio.sound(event,false);else if(!state.modal&&!$('#caption').classList.contains('show'))say(event.text,5500)}
     if(now-lastTick>1000){lastTick=now;currentWeather=weatherAt(Date.now(),memory.life.seed);refresh()}
-    renderer.drawSnow(now);
+    renderer.drawSnow(now);renderer.drawLantern(now,memory);
     let pad;try{pad=[...(navigator.getGamepads?.()||[])].find(p=>p?.connected)}catch{}
     const result=gamepadCommands(pad,controller,now);controller=result.state;
     if(result.commands.length){state.input='gamepad';wake();audio.wake();for(const id of result.commands)command(id);updateSelected()}

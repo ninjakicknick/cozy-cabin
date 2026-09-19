@@ -16,6 +16,7 @@ Sound starts on the first gesture. A saved sound preference, object states and n
 
 Static ES modules; no framework, no build, no runtime dependencies. Serve with `python -m http.server 8000`. Run `npm test` for Node's built-in regression tests.
 
+- `clock.js`: a small persistent physical puzzle and access invariants.
 - `world.js`: art, scene connections, objects, coordinates, actions and labels.
 - `app.js`: shared interaction controller and accessible object readers.
 - `renderer.js`: lazy image loading, cancellable scene transitions, active-view video playback, masked weather.
@@ -24,6 +25,7 @@ Static ES modules; no framework, no build, no runtime dependencies. Serve with `
 - `input.js`: pure gamepad interpretation shared with tests.
 - `audio.js`: native seamless ambience, distance mixing and self-cleaning synthesized sound events.
 - `stories.js`: short physical writing found around the cabin.
+- `tests/clock.html`: isolated fresh/older-save walkthrough fixture; never writes the normal cabin save.
 - `tests/viewport.html`: noindex responsive fixture, using the real application inside portrait/landscape frames.
 
 Images load on first arrival, not all at startup. Only current-scene videos play. Snow is masked to windows/exterior areas and capped at 20 fps. Reduced motion disables it and the video masks. Weather is fictional and continuous across visits; subtle light follows the device’s local time. Records have a finite side, tea cools, and ambient sounds travel from their physical sources. Memory is checkpointed every thirty seconds and on actions/exit; background time never counts as time spent resting. Weather and sound transitions are gradual; the ambience loops independently of JavaScript timing.

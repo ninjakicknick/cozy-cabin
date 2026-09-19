@@ -1,6 +1,7 @@
-import { readLife, weatherAt, restingPlaces, restTrace, localDay } from './rhythms.js?v=50';
+import { readClock } from './clock.js?v=60';
+import { readLife, weatherAt, restingPlaces, restTrace, localDay } from './rhythms.js?v=60';
 export { weatherAt };
-import { scenes } from './world.js?v=50';
+import { scenes,visibleSpots } from './world.js?v=60';
 export const STORAGE_KEY = 'cozy-cabin.memory.v1';
 const integer=(value,min,max,fallback=0)=>Number.isInteger(value)?Math.max(min,Math.min(max,value)):fallback;
 export function readMemory(storage,now=Date.now()) {
@@ -8,6 +9,7 @@ export function readMemory(storage,now=Date.now()) {
   const time=(value,maxAge,maxFuture=0)=>Number.isFinite(value)&&value>=now-maxAge&&value<=now+maxFuture?value:0;
   const life=readLife(raw.life,now);
   return {
+    ...readClock(raw),
     windowOpen:raw.windowOpen===true,recordOn:raw.recordOn===true&&(!life.recordAt||now-life.recordAt<192000),page:integer(raw.page,0,3),
     emberUntil:Number.isFinite(raw.emberUntil)?Math.min(raw.emberUntil,now+20*60e3):0,
     listened:raw.listened===true,muted:raw.muted===true,recordSide:integer(raw.recordSide,0,1),
@@ -20,7 +22,7 @@ export function readMemory(storage,now=Date.now()) {
 }
 export function saveMemory(storage,memory){try{storage.setItem(STORAGE_KEY,JSON.stringify(memory))}catch{}}
 export function parentView(view){return scenes[view]?.parent|| (view==='book'?'books':'room')}
-export function navigationPoints(view,actions=[]){const spec=scenes[view];return Object.fromEntries([...(spec.spots||[]).map(s=>[s.id,[s.x,s.y]]),...actions.map((id,i)=>[`action:${id}`,[50+(i-(actions.length-1)/2)*20,100]])]);}
+export function navigationPoints(view,actions=[],memory={}){const spec=scenes[view];return Object.fromEntries([...visibleSpots(view,memory).map(s=>[s.id,[s.x,s.y]]),...actions.map((id,i)=>[`action:${id}`,[50+(i-(actions.length-1)/2)*20,100]])]);}
 export const positions=Object.fromEntries(scenes.room.spots.map(s=>[s.id,[s.x,s.y]]));
 export function neighbor(current,dx,dy,points=positions,fallback='chair') {
   const ids=Object.keys(points);if(!points[current])return points[fallback]?fallback:ids[0];

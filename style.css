@@ -121,3 +121,21 @@ dialog button:disabled{opacity:.22;cursor:default}
 #scene[data-art=porch].seed-traces #seed-traces{display:block}
 #scene.cat-near[data-art=floor] #room-light{background:radial-gradient(ellipse at 85% 85%,#ffba5920,transparent 24%);opacity:.22}
 @media(prefers-reduced-motion:reduce){#time-light,#warmth,#room-light{transition:none!important}}
+
+.state-art{z-index:2;opacity:0;transition:opacity .65s ease}
+.key-away .state-art.key-away,.secret-open .state-art.secret-open{opacity:1}
+.door-leaf{z-index:3;display:none;clip-path:polygon(37.3% 5%,62% 5%,62% 83%,37.3% 83%);transform-origin:37.3% 44%}
+.revealing .door-leaf{display:block}
+.revealing #hotspots{pointer-events:none;opacity:0}
+#lantern-light{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;mix-blend-mode:screen}
+#clock-pendulum{display:none;position:absolute;left:48.2%;top:30%;width:3.1%;height:11.8%;background:linear-gradient(90deg,#21170b,#191308,#21170b);z-index:3;pointer-events:none}
+#clock-pendulum i{position:absolute;left:49%;top:0;width:2%;height:86%;background:#9d752e;transform-origin:50% 0}
+#clock-pendulum i::after{content:'';position:absolute;bottom:0;width:2000%;aspect-ratio:1;left:50%;transform:translateX(-50%);border-radius:50%;background:linear-gradient(135deg,#c6a255,#60431b,#bd9240);border:1px solid #b08a43}
+#scene[data-art=clockWall].clock-running:not(.secret-open) #clock-pendulum{display:block}
+.clock-running #clock-pendulum i{animation:pendulum 1.6s ease-in-out infinite alternate}
+@keyframes pendulum{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+#fitted-key{display:none;position:absolute;left:49%;top:23.7%;color:#bda364;text-shadow:1px 2px 2px #000;font-size:clamp(10px,2.2vw,30px);z-index:4;pointer-events:none;transform:rotate(25deg)}
+#scene[data-art=clockWall].key-fitted:not(.secret-open) #fitted-key{display:block}
+@media(prefers-reduced-motion:reduce){.door-leaf{display:none!important}#clock-pendulum i{animation:none!important}}
+
+#scene[data-art=clockWall].clock-running.secret-open:not(.revealing) #clock-pendulum{display:block;left:41.7%;top:30.2%;width:.85%;height:11.5%;transform:skewY(-12deg)}

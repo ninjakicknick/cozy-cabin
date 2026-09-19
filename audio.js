@@ -1,5 +1,5 @@
-import { propagation, soundOrigins, fireWarmth } from './rhythms.js?v=50';
-import { baseArt } from './world.js?v=50';
+import { propagation, soundOrigins, fireWarmth } from './rhythms.js?v=60';
+import { baseArt } from './world.js?v=60';
 // Loop seams are blended once in the decoded buffer. Native Web Audio looping
 // continues without animation frames, media events, or just-in-time JS timers.
 export function loopSamples(input, overlap) {
@@ -14,6 +14,7 @@ export function loopSamples(input, overlap) {
   return result;
 }
 const mixes = {
+  clockWall:[.2,.055,.12,1600],snug:[.11,.09,.025,800],snugRest:[.10,.12,.02,750],instrument:[.09,.08,.02,800],
   windowLake: [.1,.3,.04,1000],
   kitchen: [.13,.09,.065,1100], drawer: [.12,.08,.065,1100], mudroom:[.055,.2,.03,700],
   porch:[.018,.43,.018,500], porchSeat:[.015,.4,.015,500], lake:[.01,.47,.01,500],
@@ -40,6 +41,7 @@ export class CabinAudio {
         this.master = this.ctx.createGain();
         this.master.gain.value = this.settings.muted ? 0 : .8;
         this.master.connect(this.ctx.destination);
+        this.createClock();
       }
       if (this.ctx.state !== 'running') await this.ctx.resume();
       await Promise.all(['fire', 'wind', 'record', ...(this.settings.recordSide ? ['recordB'] : [])].map(name => this.load(name)));
@@ -92,6 +94,7 @@ export class CabinAudio {
     const windowGain=settings.windowOpen?Math.min(2.6,windPath.gain/propagation(view,'porch',false).gain):1;
     for(const voice of this.voices)this.positionVoice(voice);
     this.recordTransport();
+    if(this.ticker){const p=propagation(view,'clockWall',settings.windowOpen);this.ramp(this.ticker.gain.gain,settings.clockRunning?p.gain*.045:0,.7);this.ramp(this.ticker.filter.frequency,p.cutoff,.7);}
     this.ramp(this.master.gain, settings.muted ? 0 : .8, .25);
     for (const [name, layer] of this.layers) {
       const level = name === 'fire' ? fire * (.65 + fireWarmth(settings)*.47)
@@ -100,6 +103,11 @@ export class CabinAudio {
       this.ramp(layer.gain.gain, level);
       this.ramp(layer.filter.frequency, name === 'fire' ? frequency : name === 'wind' ? (outside ? 7000 : windPath.cutoff) : recordPath.cutoff);
     }
+  }
+  createClock(){
+    const ctx=this.ctx,buffer=ctx.createBuffer(1,Math.round(ctx.sampleRate*1.6),ctx.sampleRate),data=buffer.getChannelData(0);
+    for(let i=0;i<data.length;i++){const t=i/ctx.sampleRate,beat=t%.8;if(beat<.042)data[i]=(Math.sin(beat*Math.PI*2*(t<.8?1100:820))*.6+(Math.random()*2-1)*.25)*Math.exp(-beat*105);}
+    const source=ctx.createBufferSource(),gain=ctx.createGain(),filter=ctx.createBiquadFilter();source.buffer=buffer;source.loop=true;gain.gain.value=0;filter.type='lowpass';source.connect(filter).connect(gain).connect(this.master);source.start();this.ticker={source,gain,filter};
   }
   recordTransport() {
     if(!this.settings.recordOn)return;
@@ -132,9 +140,9 @@ export class CabinAudio {
   }
   sound(kind,local=true) {
     if (!this.ctx || this.ctx.state !== 'running') return;
-    if (['chime','owl','bird','lakeBell','kettle','musicbox','cup'].includes(kind)) { this.melody(kind,local); return; }
+    if (['chime','owl','bird','lakeBell','kettle','musicbox','cup','toneLow','toneMiddle','toneHigh'].includes(kind)) { this.melody(kind,local); return; }
     const ctx = this.ctx, now = ctx.currentTime, voice=this.voice(kind,local);
-    const duration = kind === 'purr' ? 2.1 : kind === 'wood' || kind === 'roof' ? .65 : .18;
+    const duration = kind==='winding'?1.8:kind==='key'?.28:kind === 'purr' ? 2.1 : kind === 'wood' || kind === 'roof' ? .65 : .18;
     const gain = ctx.createGain(), filter = ctx.createBiquadFilter();
     const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
     const data = buffer.getChannelData(0);
@@ -142,7 +150,7 @@ export class CabinAudio {
       const t = i / ctx.sampleRate;
       data[i] = kind === 'purr'
         ? (Math.sin(t * Math.PI * 2 * 94) * .55 + (Math.random() * 2 - 1) * .15) * (.55 + .45 * Math.sin(t * 2 * Math.PI * 25))
-        : Math.random() * 2 - 1;
+        : kind==='winding'?(Math.random()*2-1)*Math.exp(-(t%.26)*45):kind==='key'?Math.sin(t*2*Math.PI*2200)*Math.exp(-t*20):Math.random() * 2 - 1;
     }
     const source = ctx.createBufferSource(); source.buffer = buffer;
     filter.type = kind === 'page' ? 'highpass' : 'lowpass';
@@ -157,16 +165,16 @@ export class CabinAudio {
   melody(kind,local=true) {
     if (!this.ctx || this.ctx.state !== 'running') return;
     const ctx=this.ctx, now=ctx.currentTime,voice=this.voice(kind,local);
-    const patterns={chime:[880,1174.66,1318.5],owl:[310,280],bird:[1700,2300,1900],lakeBell:[392,523.25],kettle:[980,1010],musicbox:[523.25,659.25,783.99,587.33,523.25],cup:[1800]};
+    const patterns={toneLow:[261.63],toneMiddle:[329.63],toneHigh:[392],chime:[880,1174.66,1318.5],owl:[310,280],bird:[1700,2300,1900],lakeBell:[392,523.25],kettle:[980,1010],musicbox:[523.25,659.25,783.99,587.33,523.25],cup:[1800]};
     const notes=patterns[kind]||patterns.chime;
     let remaining=notes.length;
     notes.forEach((freq,index)=>{
       const osc=ctx.createOscillator(),overtone=ctx.createOscillator(),gain=ctx.createGain(),harmonic=ctx.createGain();
-      const start=now+index*(kind==='musicbox'?.68:kind==='bird'?.13:.5),duration=kind==='bird'?.18:kind==='cup'?.25:2.4;
+      const start=now+index*(kind==='musicbox'?.68:kind==='bird'?.13:.5),duration=kind==='bird'?.18:kind==='cup'?.25:kind.startsWith('tone')?3.8:2.4;
       osc.type='sine';osc.frequency.setValueAtTime(freq,start);
       if(kind==='owl'||kind==='bird')osc.frequency.exponentialRampToValueAtTime(freq*.86,start+duration);
       overtone.frequency.value=freq*2.007;harmonic.gain.value=.12;
-      gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime((kind==='bird'?.025:kind==='kettle'?.035:.045),start+.025);
+      gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime((kind.startsWith('tone')?.085:kind==='bird'?.025:kind==='kettle'?.035:.045),start+.025);
       gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
       osc.connect(gain);overtone.connect(harmonic).connect(gain);gain.connect(voice.input);
       osc.start(start);overtone.start(start);osc.stop(start+duration+.05);overtone.stop(start+duration+.05);
