@@ -1,5 +1,5 @@
-import { fireWarmth, teaWarmth } from './rhythms.js?v=60';
-import { art, scenes } from './world.js?v=60';
+import { fireWarmth, teaWarmth } from './rhythms.js?v=62';
+import { art, scenes } from './world.js?v=62';
 export class CabinRenderer {
   constructor(scene,weather) {
     this.scene=scene;this.canvas=weather;this.ctx=weather.getContext('2d');
@@ -108,9 +108,11 @@ export class CabinRenderer {
     const ctx=this.ctx,w=900,h=506;
     if(this.canvas.width!==w){this.canvas.width=w;this.canvas.height=h}
     ctx.clearRect(0,0,w,h);
-    const polygon=art[scenes[this.view].art].snow;
-    if(!polygon||document.hidden||this.motion.matches)return;
-    ctx.save();ctx.beginPath();polygon.forEach(([x,y],i)=>i?ctx.lineTo(x*w/100,y*h/100):ctx.moveTo(x*w/100,y*h/100));ctx.closePath();ctx.clip();
+    const weatherArt=art[scenes[this.view].art],panes=weatherArt.snowPanes||(weatherArt.snow?[weatherArt.snow]:[]);
+    if(!panes.length||document.hidden||this.motion.matches)return;
+    ctx.save();ctx.beginPath();
+    for(const polygon of panes){polygon.forEach(([x,y],i)=>i?ctx.lineTo(x*w/100,y*h/100):ctx.moveTo(x*w/100,y*h/100));ctx.closePath()}
+    ctx.clip();
     ctx.fillStyle='#dce8f4';const count=Math.ceil(this.flakes.length*this.weather.snow);
     for(let i=0;i<count;i++){const p=this.flakes[i];p.y=(p.y+p.s*dt)%1;p.x=(p.x+dt*(.012*this.weather.wind)+1)%1;ctx.globalAlpha=(.12+p.r*.09)*Math.min(1,count-i)*Math.min(1,Math.max(0,this.weather.snow*this.flakes.length-i));ctx.beginPath();ctx.arc(p.x*w,p.y*h,p.r,0,Math.PI*2);ctx.fill()}
     ctx.restore();

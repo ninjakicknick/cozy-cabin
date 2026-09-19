@@ -1,4 +1,4 @@
-import { clockLabel } from './clock.js?v=60';
+import { clockLabel } from './clock.js?v=62';
 // Scene coordinates are percentages in the original artwork, independent of screen size.
 // A scene owns its exits and objects; input devices all use the same definitions.
 const spot = (id, label, x, y, target, kind = 'go', extra = {}) => ({id,label,x,y,[kind]:target,...extra});
@@ -12,6 +12,7 @@ export const art = {
   loft:{night:'assets/scenes/loft-night.webp',src:'assets/scenes/loft.webp',alt:'A low sleeping loft with a writing desk, telescope and a little cupboard under the eaves',snow:[[44,18],[54,0],[72,20],[72,39],[44,39]],lights:[68,30.7]},
   eaves:{src:'assets/scenes/eaves.webp',alt:'A small wool-lined hiding place under the roof, looking through a round window',snow:[[48,25],[55,25],[58,33],[58,44],[52,50],[46,45],[44,35]]},
   clockWall:{src:'assets/scenes/clock-wall.webp',alt:'A walnut wall clock between the bookshelves and the stone chimney',variant:{src:'assets/scenes/clock-open.webp',state:'secret-open'}},
+  snugBed:{src:'assets/scenes/snug-bed.webp',alt:'Lying on the daybed, looking up through the timber-framed glass roof at snowy pines',snowPanes:[[[11,0],[28,0],[30,32],[15,25]],[[34,0],[65,0],[60,46],[35,36]],[[72,0],[97,0],[85,56],[65,48]],[[16,31],[30,37],[31,62],[19,56]],[[35,42],[59,51],[56,74],[35,65]],[[65,55],[83,61],[78,87],[61,78]]]},
   snug:{src:'assets/scenes/snug.webp',alt:'A small wool-lined room behind the warm chimney, beneath a sloping glass roof',snow:[[23,0],[73,0],[69,29],[29,20]]},
   drawer:{src:'assets/scenes/drawer.webp',alt:'An open kitchen drawer containing recipe cards, a postcard and an old brass compass'},
 };
@@ -54,8 +55,8 @@ export const scenes = {
     spot('cushion','Settle on the cushion',64,65,'cushion','go',{w:24,h:20}),spot('picture','Look at the pinned photograph',80,34,'photograph','do'),
     spot('out','Back into the loft',93,90,'loft','go',{edge:true})]},
   clockWall:{art:'clockWall',label:'Beside the old clock',parent:'books',default:'clock',spots:[spot('clock','The old clock',49.7,30,'clock','do',{w:14,h:40}),spot('passage','Step through the opening',53,61,'snug','go',{when:'secretOpen',w:20,h:38})]},
-  snug:{art:'snug',label:'Behind the warm stone',parent:'clockWall',default:'rest',spots:[spot('rest','Settle beneath the glass',45,63,'snugRest','go',{w:43,h:37}),spot('lantern','The brass lantern',82,51,'lantern','do',{w:12,h:33}),spot('instrument','The little wooden instrument',90,70,'instrument'),spot('out','Back through the panel',7,92,'clockWall','go',{edge:true})]},
-  snugRest:{art:'snug',label:'Beneath the glass roof',parent:'snug',rest:true,zoom:[1.18,49,28],actions:['lantern','listen']},
+  snug:{art:'snug',label:'Behind the warm stone',parent:'clockWall',default:'rest',spots:[spot('rest','Lie on the bed',45,63,'snugRest','go',{w:43,h:37}),spot('lantern','The brass lantern',82,51,'lantern','do',{w:12,h:33}),spot('instrument','The little wooden instrument',90,70,'instrument'),spot('out','Back through the panel',7,92,'clockWall','go',{edge:true})]},
+  snugRest:{art:'snugBed',label:'Lying beneath the glass roof',parent:'snug',rest:true,actions:['lantern','listen']},
   instrument:{art:'snug',label:'At the little instrument',parent:'snug',zoom:[1.65,78,61],actions:['toneLow','toneMiddle','toneHigh']},
   cushion:{art:'eaves',label:'In the quiet under the roof',parent:'eaves',zoom:[1.25,54,38],rest:true,actions:['musicbox']},
 };

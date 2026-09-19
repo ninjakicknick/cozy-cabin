@@ -1,11 +1,11 @@
-import { clockAction, canEnter } from './clock.js?v=60';
-import { teaWarmth, rememberTea } from './rhythms.js?v=60';
-import { CabinAudio } from './audio.js?v=60';
-import { scenes,actionLabel,visibleSpots } from './world.js?v=60';
-import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=60';
-import { gamepadCommands } from './input.js?v=60';
-import { CabinRenderer } from './renderer.js?v=60';
-import { notebook,paper as paperContent } from './stories.js?v=60';
+import { clockAction, canEnter } from './clock.js?v=62';
+import { teaWarmth, rememberTea } from './rhythms.js?v=62';
+import { CabinAudio } from './audio.js?v=62';
+import { scenes,actionLabel,visibleSpots } from './world.js?v=62';
+import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=62';
+import { gamepadCommands } from './input.js?v=62';
+import { CabinRenderer } from './renderer.js?v=62';
+import { notebook,paper as paperContent } from './stories.js?v=62';
 const $=s=>document.querySelector(s),stage=$('#stage'),scene=$('#scene'),hotspots=$('#hotspots'),actions=$('#actions');
 const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchParams(location.search).get('testVisit')==='clock'?{getItem:()=>sessionStorage.getItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default')),setItem:(_,v)=>sessionStorage.setItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default'),v)}:localStorage}catch{}
 const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
@@ -38,7 +38,7 @@ function renderControls(){
     button.addEventListener('click',()=>{state.selected=item.id;activate(item)});hotspots.append(button);
   }
   for(const id of availableActions()){const button=document.createElement('button');button.className='quiet-control';button.dataset.action=id;button.textContent=actionLabel(id,memory);button.addEventListener('click',()=>perform(id));actions.append(button)}
-  actions.hidden=!availableActions().length;$('#back').hidden=state.view==='room';$('#back').setAttribute('aria-label',state.view==='floor'?'Sit back up':`Back — ${scenes[parentView(state.view)].label}`);
+  actions.hidden=!availableActions().length;$('#back').hidden=state.view==='room';$('#back').setAttribute('aria-label',['floor','snugRest'].includes(state.view)?'Sit back up':`Back — ${scenes[parentView(state.view)].label}`);
   $('#sound').textContent=memory.muted?'Sound off':'Sound on';$('#sound').setAttribute('aria-pressed',String(!memory.muted));updateSelected();
 }
 function refresh(){
