@@ -22,3 +22,12 @@ No new room images. The existing spatial continuity is more valuable than rapidl
 ## Next possibilities
 
 A single carefully art-directed window-seat viewpoint; a kettle that sounds different from the chair; rare variations in distant lights. Keep the mystery gentle. Expanding it into anything threatening should be a deliberate taste decision.
+
+## Verification completed
+
+- Five Node regression tests passed; module syntax and diff whitespace checks passed.
+- Live Chrome: notebook open/page/close, keyboard page turns, saved page, chair → floor → chair → room, spatial navigation, fire and cat interaction, record toggle, window toggle, persisted record/window state after reload.
+- Idle controls fade; active-view video continues and inactive videos pause. Audio asset readiness succeeded, with no app-origin console errors observed during the exercised flows.
+- Responsive fixture checked at 390 × 844 and 844 × 390; notebook text and page/close controls remain readable and reachable. This is viewport testing, not a physical phone test.
+- Corrected inactive scene descriptions being exposed to screen readers during verification.
+- Native Web Audio seam continuity is covered numerically. No claim of speaker/headphone listening verification or physical gamepad/TV testing.
