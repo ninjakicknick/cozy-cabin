@@ -99,8 +99,12 @@ export class CabinRenderer {
     for(let i=0;i<22;i++){
       const x=450+Math.cos(i*2.399+t)*430,y=220+Math.sin(i*1.41+t*.6)*190;
       const pulse=now<this.ringUntil?(this.ringUntil-now)/2400:0;
-      const glow=c.createRadialGradient(x,y,0,x,y,9+i%4*4);glow.addColorStop(0,`rgba(${pulse?this.ringColor:'243,193,117'},${.15+pulse*.13})`);glow.addColorStop(1,'transparent');
-      c.fillStyle=glow;c.beginPath();c.ellipse(x,y,9+i%4*4,9+i%4*4,0,0,Math.PI*2);c.fill();
+      const radius=16+i%4*6;
+      const glow=c.createRadialGradient(x,y,0,x,y,radius);
+      glow.addColorStop(0,`rgba(${pulse?this.ringColor:'255,210,135'},${.34+pulse*.20})`);
+      glow.addColorStop(.28,`rgba(${pulse?this.ringColor:'243,193,117'},${.18+pulse*.12})`);
+      glow.addColorStop(1,'transparent');
+      c.fillStyle=glow;c.beginPath();c.ellipse(x,y,radius,radius,0,0,Math.PI*2);c.fill();
     }c.restore();
   }
   drawSnow(now){
