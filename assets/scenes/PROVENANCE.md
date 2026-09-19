@@ -30,3 +30,7 @@ Reveal uses a clipped leaf derived from the closed scene and a perspective rotat
 
 ## Daybed roof viewpoint
 `snug-bed.webp` was generated with the built-in image tool from `snug.webp` as an architectural reference, then encoded as optimized WebP. Prompt: first-person camera lying on the daybed with head at the left end, looking up through the same sloping pine-framed glazed roof; snowy evergreen tops and blue winter twilight; narrow chimney edge at right; warm amber light from below; a little blanket at the bottom; no people, UI or text. Six individual pane masks keep procedural snow off timber and interior surfaces.
+
+
+## Lights-out variants
+Ten `*-unlit.webp` plates were created with the built-in image-generation tool from their corresponding existing viewpoint. Prompt: edit lighting only, preserve exact camera/framing/architecture/object positions; extinguish every lamp and candle, retain the original fireplace and cool window light, realistic falloff without crushed blacks. For spaces away from the fire, use faint blue snowlight and distant warm spill. The mudroom key-removal variant changes only the hook patch. WebP quality 88; original art is retained. No fireplace video masks were changed.

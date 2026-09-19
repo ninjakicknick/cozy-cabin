@@ -139,3 +139,12 @@ dialog button:disabled{opacity:.22;cursor:default}
 @media(prefers-reduced-motion:reduce){.door-leaf{display:none!important}#clock-pendulum i{animation:none!important}}
 
 #scene[data-art=clockWall].clock-running.secret-open:not(.revealing) #clock-pendulum{display:block;left:41.7%;top:30.2%;width:.85%;height:11.5%;transform:skewY(-12deg)}
+
+/* Registered lighting plates sit below the existing fireplace videos. */
+.scene-layer .unlit-art,.scene-layer .unlit-state{z-index:2;opacity:0;transition:opacity 1.2s ease}
+.lights-out .scene-layer.active .unlit-art{opacity:1}
+.lights-out.key-away .scene-layer.active .unlit-state.key-away,.lights-out.secret-open .scene-layer.active .unlit-state.secret-open{opacity:1}
+.scene-layer[data-art=drawer]>img,.scene-layer[data-art=eaves]>img{transition:filter 1.2s ease}
+.lights-out .scene-layer[data-art=drawer]>img{filter:brightness(.38) saturate(.6)}
+.eaves-dark .scene-layer[data-art=eaves]>img{filter:brightness(.38) saturate(.6)}
+@media(max-width:380px){#toolbar .quiet-control{padding:8px;font-size:12px}#toolbar{gap:3px}}

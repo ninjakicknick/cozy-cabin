@@ -1,7 +1,7 @@
-import { readClock } from './clock.js?v=62';
-import { readLife, weatherAt, restingPlaces, restTrace, localDay } from './rhythms.js?v=62';
+import { readClock } from './clock.js?v=64';
+import { readLife, weatherAt, restingPlaces, restTrace, localDay } from './rhythms.js?v=64';
 export { weatherAt };
-import { scenes,visibleSpots } from './world.js?v=62';
+import { scenes,visibleSpots } from './world.js?v=64';
 export const STORAGE_KEY = 'cozy-cabin.memory.v1';
 const integer=(value,min,max,fallback=0)=>Number.isInteger(value)?Math.max(min,Math.min(max,value)):fallback;
 export function readMemory(storage,now=Date.now()) {
@@ -9,7 +9,7 @@ export function readMemory(storage,now=Date.now()) {
   const time=(value,maxAge,maxFuture=0)=>Number.isFinite(value)&&value>=now-maxAge&&value<=now+maxFuture?value:0;
   const life=readLife(raw.life,now);
   return {
-    ...readClock(raw),
+    ...readClock(raw),lightsOn:raw.lightsOn!==false,
     windowOpen:raw.windowOpen===true,recordOn:raw.recordOn===true&&(!life.recordAt||now-life.recordAt<192000),page:integer(raw.page,0,3),
     emberUntil:Number.isFinite(raw.emberUntil)?Math.min(raw.emberUntil,now+20*60e3):0,
     listened:raw.listened===true,muted:raw.muted===true,recordSide:integer(raw.recordSide,0,1),

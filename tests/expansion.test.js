@@ -7,7 +7,7 @@ import { gamepadCommands } from '../input.js';
 
 test('all scene assets exist, exits resolve, and every scene has a finite route home',()=>{
  for(const [id,s] of Object.entries(scenes)){
-  assert.ok(art[s.art],id);assert.ok(existsSync(art[s.art].src));if(art[s.art].night)assert.ok(existsSync(art[s.art].night));
+  assert.ok(art[s.art],id);assert.ok(existsSync(art[s.art].src));if(art[s.art].night)assert.ok(existsSync(art[s.art].night));if(art[s.art].unlit)assert.ok(existsSync(art[s.art].unlit));if(art[s.art].variant?.unlit)assert.ok(existsSync(art[s.art].variant.unlit));
   for(const spot of s.spots||[])if(spot.go)assert.ok(scenes[spot.go],`${id}/${spot.id}`);
   let at=id,seen=new Set();while(at!=='room'){assert.ok(!seen.has(at),`parent cycle ${id}`);seen.add(at);at=parentView(at)}
  }
@@ -52,4 +52,16 @@ test('a long idle visit remains bounded and weather changes without creating eve
 test('legacy memory migrates and stale appliance timestamps expire safely',()=>{
  const m=readMemory({getItem:()=>JSON.stringify({windowOpen:true,page:2,kettleAt:1,recordSide:99,loftLamp:false})},1e9);
  assert.equal(m.page,2);assert.equal(m.windowOpen,true);assert.equal(m.loftLamp,false);assert.equal(m.porchLamp,true);assert.equal(m.kettleAt,0);assert.equal(m.recordSide,1);
+});
+
+test('lights-out survives reload without resetting discovery or fire state',()=>{
+ const m=readMemory({getItem:()=>JSON.stringify({lightsOn:false,loftLamp:false,porchLamp:false,secretOpen:true,clockKey:'clock',lanternTurning:true,emberUntil:200000})},100000);
+ assert.equal(m.lightsOn,false);assert.equal(m.secretOpen,true);assert.equal(m.lanternTurning,true);assert.equal(m.emberUntil,200000);
+ const again=readMemory({getItem:()=>JSON.stringify(m)},100001);assert.equal(again.lightsOn,false);assert.equal(again.loftLamp,false);assert.equal(again.porchLamp,false);
+ assert.equal(readMemory().lightsOn,true);
+});
+test('controller lights button toggles once per press, including after reconnect',()=>{
+ const pad={buttons:Array.from({length:16},()=>({pressed:false})),axes:[0,0]};pad.buttons[3].pressed=true;
+ const first=gamepadCommands(pad,{},0);assert.deepEqual(first.commands,['lights']);assert.deepEqual(gamepadCommands(pad,first.state,1000).commands,[]);
+ const released=gamepadCommands(null,first.state,1100);assert.deepEqual(gamepadCommands(pad,released.state,1200).commands,['lights']);
 });

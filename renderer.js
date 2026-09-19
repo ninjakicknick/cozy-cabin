@@ -1,5 +1,5 @@
-import { fireWarmth, teaWarmth } from './rhythms.js?v=62';
-import { art, scenes } from './world.js?v=62';
+import { fireWarmth, teaWarmth } from './rhythms.js?v=64';
+import { art, scenes } from './world.js?v=64';
 export class CabinRenderer {
   constructor(scene,weather) {
     this.scene=scene;this.canvas=weather;this.ctx=weather.getContext('2d');
@@ -18,6 +18,9 @@ export class CabinRenderer {
       await img.decode();layer.append(img);
       if(spec.night){const night=new Image();night.className='night-art';night.alt='';night.setAttribute('aria-hidden','true');night.src=spec.night;await night.decode();layer.append(night)}
       if(spec.variant){const variant=new Image();variant.className='state-art '+spec.variant.state;variant.alt='';variant.setAttribute('aria-hidden','true');variant.src=spec.variant.src;if(spec.variant.clip)variant.style.clipPath=spec.variant.clip;await variant.decode();layer.append(variant)}
+      for(const [src,kind,clip] of [[spec.unlit,'unlit-art'],[spec.variant?.unlit,'unlit-state '+spec.variant?.state,spec.variant?.clip]]){
+        if(!src)continue;const dark=new Image();dark.className=kind;dark.alt='';dark.setAttribute('aria-hidden','true');dark.src=src;if(clip)dark.style.clipPath=clip;await dark.decode();layer.append(dark);
+      }
       if(id==='clockWall'){const leaf=new Image();leaf.className='door-leaf';leaf.alt='';leaf.setAttribute('aria-hidden','true');leaf.src=spec.src;layer.append(leaf)}
       for(const [src,x,y,w,h] of spec.videos||[]){
         const mask=document.createElement('div');mask.className='video-mask';mask.setAttribute('aria-hidden','true');
@@ -57,6 +60,9 @@ export class CabinRenderer {
     this.scene.classList.toggle('secret-open',memory.secretOpen);
     this.scene.classList.toggle('clock-running',memory.clockRunning);
     this.scene.classList.toggle('lantern-turning',memory.lanternTurning);
+    this.scene.classList.toggle('lights-out',memory.lightsOn===false);
+    this.scene.classList.toggle('eaves-dark',!memory.loftLamp);
+    const leaf=this.layers.get('clockWall')?.querySelector('.door-leaf');if(leaf)leaf.src=memory.lightsOn===false?art.clockWall.unlit:art.clockWall.src;
     this.scene.classList.toggle('lamp-off',base==='loft'&&!memory.loftLamp||base==='porch'&&!memory.porchLamp);
     this.scene.classList.toggle('tea-warm',teaWarmth(memory)>.4);
     this.scene.style.setProperty('--tea-heat',teaWarmth(memory));
@@ -93,7 +99,7 @@ export class CabinRenderer {
   drawLantern(now,memory){
     if(now-this.lastLantern<80)return;this.lastLantern=now;
     const c=this.lctx,w=900,h=506;if(this.lantern.width!==w){this.lantern.width=w;this.lantern.height=h}c.clearRect(0,0,w,h);
-    if(scenes[this.view].art!=='snug'||(!memory.lanternTurning&&now>this.ringUntil))return;
+    if(memory.lightsOn===false||scenes[this.view].art!=='snug'||(!memory.lanternTurning&&now>this.ringUntil))return;
     const t=this.motion.matches?0:now/24000;
     c.save();c.beginPath();c.moveTo(0,0);c.lineTo(225,0);c.lineTo(280,170);c.lineTo(640,190);c.lineTo(650,0);c.lineTo(900,0);c.lineTo(900,506);c.lineTo(660,400);c.lineTo(600,260);c.lineTo(60,270);c.closePath();c.clip();
     for(let i=0;i<22;i++){

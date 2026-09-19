@@ -37,3 +37,5 @@ Original room/chair/floor imagery, video and wind/fire recordings remain intact.
 The two record sides are original synthesized miniatures: `the-long-way-home.mp3` and `before-the-road.mp3`. Their deterministic Python / NumPy score generators are in `tools/`. Other small sound events are synthesized locally. No account, analytics, server calls or live AI service is required.
 
 Physical TV/gamepad use and subjective speaker/headphone sound quality still need hardware verification. Responsive browser checks are not a substitute for testing mobile browser audio policy on a real phone.
+
+Lighting: the quiet Lights control toggles the cabin lamps and candles while leaving the fire burning. Keyboard **L**, or the controller’s top face button (**Y** on Xbox/8BitDo layouts). The setting survives return visits; the existing loft and porch switches can still be used individually.
