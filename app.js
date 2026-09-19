@@ -7,7 +7,7 @@ import { gamepadCommands } from './input.js?v=60';
 import { CabinRenderer } from './renderer.js?v=60';
 import { notebook,paper as paperContent } from './stories.js?v=60';
 const $=s=>document.querySelector(s),stage=$('#stage'),scene=$('#scene'),hotspots=$('#hotspots'),actions=$('#actions');
-const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchParams(location.search).get('testVisit')==='clock'?{getItem:()=>sessionStorage.getItem('cozy-cabin.test.clock'),setItem:(_,v)=>sessionStorage.setItem('cozy-cabin.test.clock',v)}:localStorage}catch{}
+const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchParams(location.search).get('testVisit')==='clock'?{getItem:()=>sessionStorage.getItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default')),setItem:(_,v)=>sessionStorage.setItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default'),v)}:localStorage}catch{}
 const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
 const visit=createVisit(Date.now()^memory.visits,memory);
 if(memory.recordOn&&!memory.life.recordAt)memory.life.recordAt=Date.now();

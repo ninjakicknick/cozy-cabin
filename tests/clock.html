@@ -3,10 +3,10 @@
 <nav><button id="fresh">New empty visit</button><button id="legacy">Load an older visit</button><button id="reload">Return to this visit</button><button id="portrait">Portrait</button><button id="desktop">Desktop</button></nav>
 <p>This fixture uses a separate session save. Your normal cabin is never changed. An older visit has its notebook open at the back cover, the window unlatched and the upstairs lamp off.</p>
 <iframe title="Isolated cabin" src="../index.html?testVisit=clock" allow="autoplay; fullscreen"></iframe>
-<script>const frame=document.querySelector('iframe'),key='cozy-cabin.test.clock';let visit=0;
-function openVisit(){frame.src='../index.html?testVisit=clock&visit='+ ++visit}
-document.querySelector('#fresh').onclick=()=>{sessionStorage.removeItem(key);openVisit()};
-document.querySelector('#legacy').onclick=()=>{sessionStorage.setItem(key,JSON.stringify({page:3,windowOpen:true,loftLamp:false,blanket:true,life:{rests:{chair:450},teaDays:4}}));openVisit()};
+<script>const frame=document.querySelector('iframe'),prefix='cozy-cabin.test.clock.';let visit=0,slot='default';
+function openVisit(){frame.src='../index.html?testVisit=clock&slot='+slot+'&visit='+ ++visit}
+document.querySelector('#fresh').onclick=()=>{slot=String(Date.now());openVisit()};
+document.querySelector('#legacy').onclick=()=>{slot=String(Date.now());sessionStorage.setItem(prefix+slot,JSON.stringify({page:3,windowOpen:true,loftLamp:false,blanket:true,life:{rests:{chair:450},teaDays:4}}));openVisit()};
 document.querySelector('#reload').onclick=openVisit;
 document.querySelector('#portrait').onclick=()=>{frame.style.width='390px';frame.style.height='844px'};
 document.querySelector('#desktop').onclick=()=>{frame.style.width='100%';frame.style.height='78vh'};
