@@ -14,3 +14,15 @@ Prompt briefs:
 - Night variants: switch off only the relevant lamp, preserving camera, framing, geometry and all objects; retain moonlight and light from adjoining spaces.
 
 The game aligns hotspots to the actual generated positions rather than assumed prompt coordinates. Scene transforms provide additional seated, reclining, looking and optical viewpoints. Window/exterior masks constrain the procedural snow layer. Lighting variants crossfade without geometry changes.
+
+
+## Clock and concealed room
+
+Built-in image generation, September 19, 2026. No new external assets or services. PNG originals converted to WebP quality 88, with originals retained in the generation workspace.
+
+- `clock-wall.webp`: existing living-room image as reference. Prompt: close viewpoint turned left at the bookshelf, honey pine panelling and stone chimney; closed flush panel with walnut mechanical wall clock, full threshold visible, no entrance hint.
+- `mudroom-empty.webp`: exact boot-room image edit. Prompt: remove only brass key and ring at x27.5%, y29%; preserve empty hook and every other object/camera/light. Runtime clips this variant to the key area so unrelated image details never shift.
+- `snug.webp`: clock wall and loft images as material/architecture references. Prompt: tiny ground-floor snug behind the chimney, low glazed lean-to roof, wool daybed, warm stone, turning brass lantern and small wooden thumb instrument.
+- `clock-open.webp`: registered edit of the closed clock wall, snug as continuity reference. Prompt: panel swings inward on left hinge with clock attached; same narrow doorway, room visible beyond; keep bookcase, lamp, stone and rug fixed.
+
+Reveal uses a clipped leaf derived from the closed scene and a perspective rotation over the open-state image. Reduced motion uses the final open state immediately. Lantern reflections and roof snow are lightweight canvas layers. Clock ticking, winding, key handling and instrument notes are original Web Audio synthesis.

@@ -1,3 +1,4 @@
+import { clockLabel } from './clock.js?v=60';
 // Scene coordinates are percentages in the original artwork, independent of screen size.
 // A scene owns its exits and objects; input devices all use the same definitions.
 const spot = (id, label, x, y, target, kind = 'go', extra = {}) => ({id,label,x,y,[kind]:target,...extra});
@@ -6,10 +7,12 @@ export const art = {
   chair: {src:'assets/chair-view.png',alt:'Seated in the armchair, beside the fire',videos:[['assets/chair-fireplace.mp4',74,29,18.2,35.5]],snow:[[8,3],[26,3],[26,43],[8,43]]},
   floor: {src:'assets/floor-fireplace.png',alt:'Lying on the rug, close to the fire',videos:[['assets/floor-fireplace.mp4',35,4,58,69]]},
   kitchen:{src:'assets/scenes/kitchen.webp',alt:'A small timber kitchen, with a boot room to the left and loft stairs to the right',snow:[[46,18],[59,18],[59,38],[46,38]]},
-  mudroom:{src:'assets/scenes/mudroom.webp',alt:'Coats, boots and a bench beside the door to the porch',snow:[[57,18],[68,18],[68,44],[57,44]]},
+  mudroom:{variant:{src:'assets/scenes/mudroom-empty.webp',state:'key-away',clip:'polygon(25% 21%,29% 21%,29% 36%,25% 36%)'},src:'assets/scenes/mudroom.webp',alt:'Coats, boots and a bench beside the door to the porch',snow:[[57,18],[68,18],[68,44],[57,44]]},
   porch:{night:'assets/scenes/porch-night.webp',src:'assets/scenes/porch.webp',alt:'A sheltered timber porch above a snowy lake',snow:[[47,0],[100,0],[100,100],[67,71],[49,52]],lights:[68.7,44]},
   loft:{night:'assets/scenes/loft-night.webp',src:'assets/scenes/loft.webp',alt:'A low sleeping loft with a writing desk, telescope and a little cupboard under the eaves',snow:[[44,18],[54,0],[72,20],[72,39],[44,39]],lights:[68,30.7]},
   eaves:{src:'assets/scenes/eaves.webp',alt:'A small wool-lined hiding place under the roof, looking through a round window',snow:[[48,25],[55,25],[58,33],[58,44],[52,50],[46,45],[44,35]]},
+  clockWall:{src:'assets/scenes/clock-wall.webp',alt:'A walnut wall clock between the bookshelves and the stone chimney',variant:{src:'assets/scenes/clock-open.webp',state:'secret-open'}},
+  snug:{src:'assets/scenes/snug.webp',alt:'A small wool-lined room behind the warm chimney, beneath a sloping glass roof',snow:[[23,0],[73,0],[69,29],[29,20]]},
   drawer:{src:'assets/scenes/drawer.webp',alt:'An open kitchen drawer containing recipe cards, a postcard and an old brass compass'},
 };
 export const scenes = {
@@ -19,7 +22,7 @@ export const scenes = {
     spot('kitchen','Turn toward the kitchen',50,94,'kitchen','go',{edge:true,w:18,h:10})]},
   chair:{art:'chair',label:'In the armchair',parent:'room',default:'floor',rest:true,spots:[spot('floor','Lie by the fire',55,80,'floor','go',{w:30,h:25})]},
   floor:{art:'floor',label:'Beside the fire',parent:'chair',rest:true,actions:['tend','pet']},
-  books:{art:'room',label:'At the bookshelf',parent:'room',zoom:[1.9,10,31],actions:['book']},
+  books:{art:'room',label:'At the bookshelf',parent:'room',zoom:[1.9,10,31],actions:['book','clockView']},
   fire:{art:'room',label:'At the fireplace',parent:'room',zoom:[2.18,24,60],actions:['tend']},
   window:{art:'room',label:'At the window',parent:'room',zoom:[1.75,62,28],rest:true,actions:['window','look']},
   windowLake:{art:'porch',label:'Through the living-room window',parent:'window',zoom:[3,68,45],rest:true,actions:['listen']},
@@ -33,7 +36,7 @@ export const scenes = {
     spot('recipe','Untie the recipe cards',26,42,'recipe','do',{w:24,h:30}),spot('postcard','Turn over the postcard',54,42,'postcard','do',{w:25,h:28}),spot('compass','Lift the compass',75,40,'compass','do',{w:16,h:25})]},
   mudroom:{art:'mudroom',label:'Boot room',parent:'kitchen',default:'porch',spots:[
     spot('porch','Open the porch door',65,49,'porch','go',{w:19,h:42}),spot('bench','Pull the bench drawer',34,76,'bench','do'),
-    spot('porchLamp','Porch light switch',77.5,40,'porchLamp','do'),spot('scarf','The wool scarf',34,34,'scarf','do'),
+    spot('key','The small brass key',27.5,29,'key','do',{w:7,h:17}),spot('porchLamp','Porch light switch',77.5,40,'porchLamp','do'),spot('scarf','The wool scarf',34,34,'scarf','do'),
     spot('kitchen','Back into the kitchen',8,62,'kitchen','go',{edge:true,w:13,h:35})]},
   porch:{art:'porch',label:'On the porch',parent:'mudroom',default:'porchSeat',rest:true,spots:[
     spot('door','Go inside',12,45,'mudroom','go',{w:15,h:38}),spot('porchSeat','Sit under the eaves',20,77,'porchSeat','go',{w:25,h:25}),
@@ -50,11 +53,17 @@ export const scenes = {
     spot('tin','Open the biscuit tin',28,68,'tin','do'),spot('boat','The small wooden boat',35,55,'boat','do'),
     spot('cushion','Settle on the cushion',64,65,'cushion','go',{w:24,h:20}),spot('picture','Look at the pinned photograph',80,34,'photograph','do'),
     spot('out','Back into the loft',93,90,'loft','go',{edge:true})]},
+  clockWall:{art:'clockWall',label:'Beside the old clock',parent:'books',default:'clock',spots:[spot('clock','The old clock',49.7,30,'clock','do',{w:14,h:40}),spot('passage','Step through the opening',53,61,'snug','go',{when:'secretOpen',w:20,h:38})]},
+  snug:{art:'snug',label:'Behind the warm stone',parent:'clockWall',default:'rest',spots:[spot('rest','Settle beneath the glass',45,63,'snugRest','go',{w:43,h:37}),spot('lantern','The brass lantern',82,51,'lantern','do',{w:12,h:33}),spot('instrument','The little wooden instrument',90,70,'instrument'),spot('out','Back through the panel',7,92,'clockWall','go',{edge:true})]},
+  snugRest:{art:'snug',label:'Beneath the glass roof',parent:'snug',rest:true,zoom:[1.18,49,28],actions:['lantern','listen']},
+  instrument:{art:'snug',label:'At the little instrument',parent:'snug',zoom:[1.65,78,61],actions:['toneLow','toneMiddle','toneHigh']},
   cushion:{art:'eaves',label:'In the quiet under the roof',parent:'eaves',zoom:[1.25,54,38],rest:true,actions:['musicbox']},
 };
+export function visibleSpots(view,memory={}){return (scenes[view].spots||[]).filter(s=>!s.when||memory[s.when]).map(s=>s.id==='key'&&memory.clockKey&&memory.clockKey!=='hook'?{...s,label:'The empty hook'}:s.id==='clock'&&memory.secretOpen?{...s,x:41.5,y:30,w:9}:s);}
 export function baseArt(view){ return scenes[view]?.art || 'room'; }
 export function actionLabel(id,m,now=Date.now()) {
-  return ({book:'Open the clothbound book',tend:m.emberUntil>now?'Let the fire settle':'Add a log',pet:'Pet the cat',
+  if(id==='clock')return clockLabel(m);
+  return ({clockView:'Look beside the shelves',lantern:m.lanternTurning?'Let the lantern rest':'Turn the lantern',toneLow:'Pluck the low tine',toneMiddle:'Pluck the middle tine',toneHigh:'Pluck the high tine',book:'Open the clothbound book',tend:m.emberUntil>now?'Let the fire settle':'Add a log',pet:'Pet the cat',
     window:m.windowOpen?'Close the window':'Crack the window',look:'Look out toward the lake',
     record:m.recordOn?'Lift the needle':'Lower the needle',flip:'Turn the record over',blanket:m.blanket?'Fold back the blanket':'Pull the blanket around you',
     sip:'Take a sip',listen:'Listen',quilt:m.quilt?'Fold back the quilt':'Pull up the quilt',scope:'Adjust the focus',musicbox:m.musicbox?'Let it wind down':'Wind the little music box'})[id] || id;

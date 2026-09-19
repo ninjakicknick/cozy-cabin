@@ -1,6 +1,6 @@
 // Wall time belongs to the place. Active time belongs to the person staying here.
 // No clock, counters or schedule are exposed in the experience.
-export const restingPlaces = ['chair','floor','window','windowLake','porchSeat','lake','bed','telescope','eaves','cushion'];
+export const restingPlaces = ['chair','floor','window','windowLake','porchSeat','lake','bed','telescope','eaves','cushion','snugRest'];
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 const number=(v,a,b,f=0)=>Number.isFinite(v)?clamp(v,a,b):f;
 export function readLife(raw={},now=Date.now()) {
@@ -40,7 +40,7 @@ export function restTrace(view,life) {
   if(life.rests[view]<120)return '';
   return ({chair:'The chair gives in the same place.',floor:'The rug has kept the shape of an elbow.',
     porchSeat:'Your end of the blanket is already turned back.',bed:'The quilt falls where your hands expect it.',
-    cushion:'The wool has a familiar hollow.',window:'Your usual patch of glass clears first.'})[view]||'';
+    snugRest:'The wool is warm where your shoulder settles.',cushion:'The wool has a familiar hollow.',window:'Your usual patch of glass clears first.'})[view]||'';
 }
 export function rememberTea(memory,now=Date.now()) {
   const day=localDay(now);if(memory.life.teaDay!==day){memory.life.teaDays++;memory.life.teaDay=day;}
@@ -48,9 +48,9 @@ export function rememberTea(memory,now=Date.now()) {
 }
 
 // Physical adjacency, separate from image reuse (the telescope is upstairs).
-const zones={room:'hearth',chair:'hearth',floor:'hearth',fire:'hearth',books:'hearth',cat:'hearth',record:'hearth',window:'window',windowLake:'window',kitchen:'kitchen',drawer:'kitchen',mudroom:'threshold',porch:'porch',porchSeat:'porch',lake:'porch',loft:'loft',bed:'loft',telescope:'loft',eaves:'eaves',cushion:'eaves'};
-const links={hearth:{window:.5,kitchen:1},window:{hearth:.5,porch:2.3},kitchen:{hearth:1,threshold:1,loft:1.4},threshold:{kitchen:1,porch:1.2},porch:{threshold:1.2,window:2.3},loft:{kitchen:1.4,eaves:.8},eaves:{loft:.8}};
-export const soundOrigins={kettle:'kitchen',cup:'kitchen',chime:'porch',bird:'porch',owl:'porch',lakeBell:'porch',musicbox:'eaves',roof:'loft',wood:'hearth',purr:'hearth',needle:'hearth'};
+const zones={room:'hearth',chair:'hearth',floor:'hearth',fire:'hearth',books:'hearth',cat:'hearth',record:'hearth',window:'window',windowLake:'window',kitchen:'kitchen',drawer:'kitchen',mudroom:'threshold',porch:'porch',porchSeat:'porch',lake:'porch',loft:'loft',bed:'loft',telescope:'loft',eaves:'eaves',cushion:'eaves',clockWall:'clockWall',snug:'snug',snugRest:'snug',instrument:'snug'};
+const links={hearth:{window:.5,kitchen:1,clockWall:.6},window:{hearth:.5,porch:2.3},kitchen:{hearth:1,threshold:1,loft:1.4},threshold:{kitchen:1,porch:1.2},porch:{threshold:1.2,window:2.3},loft:{kitchen:1.4,eaves:.8},eaves:{loft:.8},clockWall:{hearth:.6,snug:.9},snug:{clockWall:.9}};
+export const soundOrigins={kettle:'kitchen',cup:'kitchen',chime:'porch',bird:'porch',owl:'porch',lakeBell:'porch',musicbox:'eaves',roof:'loft',wood:'hearth',purr:'hearth',needle:'hearth',key:'threshold',tick:'clockWall',winding:'clockWall',latch:'clockWall',toneLow:'snug',toneMiddle:'snug',toneHigh:'snug'};
 export function propagation(view,origin,windowOpen=false) {
   const target=zones[view]||'hearth';if(!origin||target===origin)return {gain:1,cutoff:9000,pan:0};
   const distances=Object.fromEntries(Object.keys(links).map(id=>[id,Infinity]));distances[origin]=0;const done=new Set();

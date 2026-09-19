@@ -68,3 +68,14 @@ Pre-publication verification: 21 tests pass, including simulated long idle, weat
 Live Chrome verification: the new module graph loaded; kettle → upstairs rest → reload resumed the resting view with weather unchanged. The stage entered its quiet/settled state after uninterrupted rest. Returning downstairs preserved kettle readiness and pouring tea succeeded. No app-origin console errors appeared in these exercised flows; browser-extension metadata errors were excluded.
 
 Walkthrough follow-up: contextual tea actions now participate in the same spatial navigation as room hotspots, including the armchair. Native audio schedules record completion even when page animation stops. Interacted-with chimes and the music mechanism retain their physical origin as the listener moves away. All 23 tests pass, including these two regression cases.
+
+
+# The clock — one small environmental puzzle
+
+Reviewed main through 557c734, including PR34 procedural living-room snow; retained that change. The clock viewpoint is a turn beside the living-room shelves, with a concealed pine panel next to the chimney. A sheltered ground-floor snug sits behind its warm masonry under a lean-to glass roof. Four optimized images provide closed/open states, key removal and the room. No main-room fireplace masks were changed.
+
+The key has three physical positions: hook, pocket, clock. Fitting and winding it needs no inventory UI or notebook-reading prerequisite. Opening persists immediately before the cancellable reveal; reloading or leaving during animation cannot lose access. The passage is absent from all pointer, keyboard, gamepad and accessibility controls until opened. Stopping the clock never closes the discovered route.
+
+The room uses the same rest/tea/weather persistence and physical sound graph as the existing cabin. Mechanical ticking is a quiet native looping source, with room-dependent filtering and optional stillness. The room has repeatable tactile sound/light interactions and a place to rest; no extra text collectible or new puzzle chain.
+
+28 automated tests pass before deployment, covering fresh and legacy saves, out-of-order/repeated actions, persistence between each step, access filtering, spatial reachability and sound propagation. A separate session-backed fixture supports full browser walkthroughs without resetting the regular save. Live checks follow publication.

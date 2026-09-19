@@ -1,10 +1,11 @@
-import { fireWarmth, teaWarmth } from './rhythms.js?v=50';
-import { art, scenes } from './world.js?v=50';
+import { fireWarmth, teaWarmth } from './rhythms.js?v=60';
+import { art, scenes } from './world.js?v=60';
 export class CabinRenderer {
   constructor(scene,weather) {
     this.scene=scene;this.canvas=weather;this.ctx=weather.getContext('2d');
     this.layers=new Map();this.loads=new Map();this.sequence=0;this.view='room';this.motion=matchMedia('(prefers-reduced-motion: reduce)');
     this.flakes=Array.from({length:65},()=>({x:Math.random(),y:Math.random(),r:.4+Math.random()*1.7,s:.012+Math.random()*.025}));
+    this.lantern=document.querySelector('#lantern-light');this.lctx=this.lantern.getContext('2d');this.lastLantern=0;this.ringUntil=0;
     this.lastSnow=0;this.weather={snow:.4,wind:1};
     this.motion.addEventListener('change',()=>this.updateVideos());
     document.addEventListener('visibilitychange',()=>this.updateVideos());
@@ -16,6 +17,8 @@ export class CabinRenderer {
       const img=new Image();img.alt=spec.alt;img.src=spec.src;img.decoding='async';
       await img.decode();layer.append(img);
       if(spec.night){const night=new Image();night.className='night-art';night.alt='';night.setAttribute('aria-hidden','true');night.src=spec.night;await night.decode();layer.append(night)}
+      if(spec.variant){const variant=new Image();variant.className='state-art '+spec.variant.state;variant.alt='';variant.setAttribute('aria-hidden','true');variant.src=spec.variant.src;if(spec.variant.clip)variant.style.clipPath=spec.variant.clip;await variant.decode();layer.append(variant)}
+      if(id==='clockWall'){const leaf=new Image();leaf.className='door-leaf';leaf.alt='';leaf.setAttribute('aria-hidden','true');leaf.src=spec.src;layer.append(leaf)}
       for(const [src,x,y,w,h] of spec.videos||[]){
         const mask=document.createElement('div');mask.className='video-mask';mask.setAttribute('aria-hidden','true');
         Object.assign(mask.style,{left:`${x}%`,top:`${y}%`,width:`${w}%`,height:`${h}%`});
@@ -29,6 +32,7 @@ export class CabinRenderer {
   async show(view) {
     const token=++this.sequence,spec=scenes[view];const layer=await this.load(spec.art);
     if(token!==this.sequence)return false;
+    this.revealAnimation?.cancel();this.scene.classList.remove('revealing');
     this.view=view;
     for(const [id,el] of this.layers){const active=id===spec.art;el.classList.toggle('active',active);el.inert=!active;el.setAttribute('aria-hidden',String(!active))}
     const [scale,x,y]=spec.zoom||[1,50,50];
@@ -48,6 +52,11 @@ export class CabinRenderer {
   }
   environment(memory,visit,weather) {
     this.weather=weather;const base=scenes[this.view].art;
+    this.scene.classList.toggle('key-away',memory.clockKey!=='hook');
+    this.scene.classList.toggle('key-fitted',memory.clockKey==='clock');
+    this.scene.classList.toggle('secret-open',memory.secretOpen);
+    this.scene.classList.toggle('clock-running',memory.clockRunning);
+    this.scene.classList.toggle('lantern-turning',memory.lanternTurning);
     this.scene.classList.toggle('lamp-off',base==='loft'&&!memory.loftLamp||base==='porch'&&!memory.porchLamp);
     this.scene.classList.toggle('tea-warm',teaWarmth(memory)>.4);
     this.scene.style.setProperty('--tea-heat',teaWarmth(memory));
@@ -67,6 +76,32 @@ export class CabinRenderer {
     if(point){light.style.left=point[0]+'%';light.style.top=point[1]+'%';light.classList.toggle('answering',visit.elapsed<visit.signalUntil)}
     this.scene.classList.toggle('bird-visit',visit.elapsed<visit.birdUntil);
     this.scene.classList.toggle('scope-sharp',memory.scopeSharp===true);
+  }
+  async reveal(){
+    if(this.motion.matches)return;
+    const leaf=this.layers.get('clockWall')?.querySelector('.door-leaf');if(!leaf)return;
+    this.scene.classList.add('revealing');
+    this.revealAnimation=leaf.animate([
+      {transform:'perspective(900px) rotateY(0deg)',opacity:1,offset:0},
+      {transform:'perspective(900px) rotateY(0deg)',opacity:1,offset:.2},
+      {transform:'perspective(900px) rotateY(-78deg)',opacity:1,offset:.88},
+      {transform:'perspective(900px) rotateY(-82deg)',opacity:0,offset:1}
+    ],{duration:3200,easing:'cubic-bezier(.35,0,.25,1)',fill:'forwards'});
+    try{await this.revealAnimation.finished}catch{}finally{this.scene.classList.remove('revealing')}
+  }
+  ring(id){this.ringUntil=performance.now()+2400;this.ringColor=id==='toneLow'?'244,170,80':id==='toneMiddle'?'157,196,182':'178,190,241';}
+  drawLantern(now,memory){
+    if(now-this.lastLantern<80)return;this.lastLantern=now;
+    const c=this.lctx,w=900,h=506;if(this.lantern.width!==w){this.lantern.width=w;this.lantern.height=h}c.clearRect(0,0,w,h);
+    if(scenes[this.view].art!=='snug'||(!memory.lanternTurning&&now>this.ringUntil))return;
+    const t=this.motion.matches?0:now/24000;
+    c.save();c.beginPath();c.moveTo(0,0);c.lineTo(225,0);c.lineTo(280,170);c.lineTo(640,190);c.lineTo(650,0);c.lineTo(900,0);c.lineTo(900,506);c.lineTo(660,400);c.lineTo(600,260);c.lineTo(60,270);c.closePath();c.clip();
+    for(let i=0;i<22;i++){
+      const x=450+Math.cos(i*2.399+t)*430,y=220+Math.sin(i*1.41+t*.6)*190;
+      const pulse=now<this.ringUntil?(this.ringUntil-now)/2400:0;
+      const glow=c.createRadialGradient(x,y,0,x,y,9+i%4*4);glow.addColorStop(0,`rgba(${pulse?this.ringColor:'243,193,117'},${.15+pulse*.13})`);glow.addColorStop(1,'transparent');
+      c.fillStyle=glow;c.beginPath();c.ellipse(x,y,9+i%4*4,9+i%4*4,0,0,Math.PI*2);c.fill();
+    }c.restore();
   }
   drawSnow(now){
     if(now-this.lastSnow<50)return;const dt=Math.min((now-this.lastSnow)/1000,.1);this.lastSnow=now;
