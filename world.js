@@ -57,5 +57,5 @@ export function actionLabel(id,m,now=Date.now()) {
   return ({book:'Open the clothbound book',tend:m.emberUntil>now?'Let the fire settle':'Add a log',pet:'Pet the cat',
     window:m.windowOpen?'Close the window':'Crack the window',look:'Look out toward the lake',
     record:m.recordOn?'Lift the needle':'Lower the needle',flip:'Turn the record over',blanket:m.blanket?'Fold back the blanket':'Pull the blanket around you',
-    listen:'Listen',quilt:m.quilt?'Fold back the quilt':'Pull up the quilt',scope:'Adjust the focus',musicbox:m.musicbox?'Let it wind down':'Wind the little music box'})[id] || id;
+    sip:'Take a sip',listen:'Listen',quilt:m.quilt?'Fold back the quilt':'Pull up the quilt',scope:'Adjust the focus',musicbox:m.musicbox?'Let it wind down':'Wind the little music box'})[id] || id;
 }

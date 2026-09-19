@@ -35,10 +35,10 @@ test('kettle is renewable, persistent, and notifies only once per boiling',()=>{
  m.kettleAt=0;assert.equal(kettleState(m,142000),'cold');m.kettleAt=150000;assert.ok(advanceWorld(v,m,'kitchen',1,190000).includes('kettle'));
 });
 test('patience events have cooldowns and survive a later visit as memory',()=>{
- const m=readMemory(undefined);m.porchLamp=false;const v=createVisit(8);const events=[];
- for(let i=0;i<90;i++)events.push(...advanceWorld(v,m,'porchSeat',1));
+ const m=readMemory(undefined);m.life.seed=1;m.porchLamp=false;const v=createVisit(8);const events=[];
+ for(let i=0;i<90;i++)events.push(...advanceWorld(v,m,'porchSeat',1,1800000));
  assert.equal(m.signalSeen,true);assert.equal(m.listened,true);const until=v.signalUntil;
- for(let i=0;i<20;i++)advanceWorld(v,m,'porchSeat',1);
+ for(let i=0;i<20;i++)advanceWorld(v,m,'porchSeat',1,1800000);
  assert.equal(v.signalUntil,until);
  const restored=readMemory({getItem:()=>JSON.stringify(m)});assert.equal(restored.signalSeen,true);
 });
@@ -46,7 +46,7 @@ test('a long idle visit remains bounded and weather changes without creating eve
  const m=readMemory(undefined),v=createVisit(23);let eventCount=0;
  for(let i=0;i<3600;i++)eventCount+=advanceWorld(v,m,'chair',1).length;
  assert.ok(eventCount>20&&eventCount<100);assert.equal(v.elapsed,3600);assert.ok(Number.isFinite(v.seed));
- assert.notEqual(weatherAt(1,0).name,weatherAt(120,0).name);
+ assert.notEqual(weatherAt(1,12).snow,weatherAt(720000,12).snow);
  advanceWorld(v,m,'loft',1);assert.equal(v.still,0);
 });
 test('legacy memory migrates and stale appliance timestamps expire safely',()=>{

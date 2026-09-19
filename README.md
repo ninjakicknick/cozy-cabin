@@ -7,10 +7,10 @@ A small, persistent place to retreat into. Sit by the fire, turn toward the kitc
 ## Controls
 
 - **Mouse / touch:** choose an object or doorway. The curved arrow near the lower edge of the living room turns toward the kitchen. Controls fade when you settle in; a movement, touch or key brings them back.
-- **Keyboard:** arrows / WASD select spatially; Enter / Space interacts; Escape / Backspace goes back. In views with two actions, left/right selects an action and X uses the second action. M toggles sound; F toggles fullscreen. Native Tab navigation remains available.
+- **Keyboard:** arrows / WASD select spatially; Enter / Space interacts; Escape / Backspace goes back. In views with multiple actions, left/right selects an action and X uses the second action. M toggles sound; F toggles fullscreen. Native Tab navigation remains available.
 - **Gamepad:** D-pad / left stick selects, A interacts, B returns, X uses the secondary action, Start toggles sound. In the book, left/right turns pages.
 
-Sound starts on the first gesture. A saved sound preference, object states and notebook page survive visits on this device. Every visit starts in the living room. Blocked browser storage does not prevent entry.
+Sound starts on the first gesture. A saved sound preference, object states and notebook page survive visits on this device. A brief interruption returns you to your last resting place; a later visit begins in the living room. Familiar places and small routines are remembered locally, without an account or a visible progress system. Blocked browser storage does not prevent entry.
 
 ## Development
 
@@ -20,12 +20,13 @@ Static ES modules; no framework, no build, no runtime dependencies. Serve with `
 - `app.js`: shared interaction controller and accessible object readers.
 - `renderer.js`: lazy image loading, cancellable scene transitions, active-view video playback, masked weather.
 - `state.js`: validated local memory, navigation, active-visit timing and bounded ambient events.
+- `rhythms.js`: persistent weather, local-time light, warmth, habitual memory and physical sound paths.
 - `input.js`: pure gamepad interpretation shared with tests.
 - `audio.js`: native seamless ambience, distance mixing and self-cleaning synthesized sound events.
 - `stories.js`: short physical writing found around the cabin.
 - `tests/viewport.html`: noindex responsive fixture, using the real application inside portrait/landscape frames.
 
-Images load on first arrival, not all at startup. Only current-scene videos play. Snow is masked to windows/exterior areas and capped at 20 fps. Reduced motion disables it and the video masks. Weather and sound transitions are gradual; the ambience loops independently of JavaScript timing.
+Images load on first arrival, not all at startup. Only current-scene videos play. Snow is masked to windows/exterior areas and capped at 20 fps. Reduced motion disables it and the video masks. Weather is fictional and continuous across visits; subtle light follows the device’s local time. Records have a finite side, tea cools, and ambient sounds travel from their physical sources. Memory is checkpointed every thirty seconds and on actions/exit; background time never counts as time spent resting. Weather and sound transitions are gradual; the ambience loops independently of JavaScript timing.
 
 ## Art and sound
 

@@ -109,3 +109,15 @@ dialog button:disabled{opacity:.22;cursor:default}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}#far-light,#bird-shadow,#steam{display:none!important}}
 
 .spot.label-left span{left:auto;right:0;transform:none}.spot.label-right span{left:0;transform:none}
+
+/* Changes are intentionally slower and quieter than navigation. */
+#time-light{position:absolute;inset:0;pointer-events:none;z-index:3;background:#09152a;mix-blend-mode:multiply;opacity:var(--night-depth,0);transition:opacity 60s linear}
+#scene[data-art=room] #room-light,#scene[data-art=room].well-tended #room-light{opacity:var(--ember-light,.22);transition:opacity 25s ease}
+.settled #warmth{opacity:.32;transition:opacity 18s ease}
+.settled.wrapped #warmth{opacity:1}
+.familiar #warmth{background:radial-gradient(ellipse at center,transparent 46%,#3423136b)}
+#scene[data-art=kitchen].tea-warm:not(.kettle-warm) #steam{opacity:var(--tea-heat,1);transition:opacity 12s linear}
+#seed-traces{display:none;position:absolute;left:86%;top:72%;width:1.2%;height:1.2%;border-radius:50%;border:1px dotted #3c343594;transform:rotate(-25deg);z-index:4;pointer-events:none}
+#scene[data-art=porch].seed-traces #seed-traces{display:block}
+#scene.cat-near[data-art=floor] #room-light{background:radial-gradient(ellipse at 85% 85%,#ffba5920,transparent 24%);opacity:.22}
+@media(prefers-reduced-motion:reduce){#time-light,#warmth,#room-light{transition:none!important}}
