@@ -31,3 +31,13 @@ A single carefully art-directed window-seat viewpoint; a kettle that sounds diff
 - Responsive fixture checked at 390 × 844 and 844 × 390; notebook text and page/close controls remain readable and reachable. This is viewport testing, not a physical phone test.
 - Corrected inactive scene descriptions being exposed to screen readers during verification.
 - Native Web Audio seam continuity is covered numerically. No claim of speaker/headphone listening verification or physical gamepad/TV testing.
+
+# The rest of the cabin — expansion pass
+
+Main through 2fbd648 was reviewed before branching. This pass expands beyond the three original views with a connected kitchen, threshold, exterior, upstairs spaces and physical object close-ups. Eight new optimized images include actual lamp-off variants. Existing scene artwork and tuned fireplace placement remain intact.
+
+The scene graph owns exits, hotspot geometry and actions; all input devices use the same graph. Scene loading waits for image decode and cancels superseded transitions. Active-visit events are deterministic and rate-limited, with no background-tab time accumulation. Wall-clock appliance states are separately validated and expire. New state migrates from the existing v1 local save without clearing it.
+
+The soundscape adds a second original record side, synthesized environmental motifs and more distant/occluded mixes upstairs and outside. Weather changes gradually and snow is restricted to outdoor regions. There is no inventory, task list, reward counter or required path.
+
+Pre-publication checks: 12 Node tests pass, including asset/exits integrity, spatial reachability for every hotspot, nested back routes, gamepad edge/repeat/disconnect handling, saved appliance timing, rare-event cooldown, old-save migration, one hour of simulated idle behavior, and seamless audio sample boundaries. Browser checks are recorded below once deployment is available. Physical hardware and subjective listening remain outside this environment's verification.
