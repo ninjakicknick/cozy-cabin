@@ -2,7 +2,7 @@
 // A scene owns its exits and objects; input devices all use the same definitions.
 const spot = (id, label, x, y, target, kind = 'go', extra = {}) => ({id,label,x,y,[kind]:target,...extra});
 export const art = {
-  room: {src:'assets/living-room.png',alt:'The firelit living room overlooking the snowy lake', snow:[[44,11],[84,11],[84,49],[44,49]], lights:[65.1,39.4], videos:[['assets/fireplace.mp4',17.1,47.4,14.3,29],['assets/window.mp4',42.7,9.8,43.3,42.8]]},
+  room: {src:'assets/living-room.png',alt:'The firelit living room overlooking the snowy lake', snow:[[44,11],[84,11],[84,49],[44,49]], lights:[65.1,39.4], videos:[['assets/fireplace.mp4',17.1,47.4,14.3,29]]},
   chair: {src:'assets/chair-view.png',alt:'Seated in the armchair, beside the fire',videos:[['assets/chair-fireplace.mp4',74,29,18.2,35.5]],snow:[[8,3],[26,3],[26,43],[8,43]]},
   floor: {src:'assets/floor-fireplace.png',alt:'Lying on the rug, close to the fire',videos:[['assets/floor-fireplace.mp4',35,4,58,69]]},
   kitchen:{src:'assets/scenes/kitchen.webp',alt:'A small timber kitchen, with a boot room to the left and loft stairs to the right',snow:[[46,18],[59,18],[59,38],[46,38]]},
