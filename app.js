@@ -1,227 +1,162 @@
-import { CabinAudio } from './audio.js';
-import { readMemory, saveMemory, parentView, neighbor, positions } from './state.js';
-
-const $ = selector => document.querySelector(selector);
-const stage = $('#stage'), scene = $('#scene'), caption = $('#caption');
-const back = $('#back'), actionPanel = $('#action-panel'), primary = $('#primary-action');
-const book = $('#book'), pageText = $('#page-text'), pageTitle = $('#page-title');
-let storage; try { storage = window.localStorage; } catch {}
-const memory = readMemory(storage);
-const state = { view: 'room', selected: null, input: 'pointer', idle: false, page: memory.page };
-const things = {
-  books: { scale: 1.9, x: 10, y: 31 }, fire: { scale: 2.18, x: 24, y: 60 },
-  window: { scale: 1.75, x: 62, y: 28 }, record: { scale: 2, x: 86, y: 49 },
-  cat: { scale: 2.35, x: 88, y: 76 },
-};
-const pages = [
-  ['November', 'The first snow came while the kettle was on.\n\nI put another cup out. Old habit.\n\nThere is enough wood beneath the window to last until the road appears again.'],
-  ['A small repair', 'The window latch sticks in the cold. Lift it a little before you pull.\n\nThe record with the plain sleeve belongs here. Please leave it when you go.'],
-  ['Undated', 'I used to count the lit windows across the lake.\n\nThree on clear nights. Two when it snows.\n\nYesterday there were four.'],
-  ['Inside the back cover', 'If you came here to get something done, I am afraid I have misplaced the clock key.\n\nStay anyway.'],
-];
-let captionTimer, idleTimer, petUntil = 0, lastFrame = performance.now(), quietTime = 0;
-let glimmerUntil = 0, nextGlimmer = performance.now() + 65000 + Math.random() * 60000;
-const audio = new CabinAudio(ok => {
-  stage.dataset.audio = ok ? 'ready' : 'retry';
-  $('#sound').classList.toggle('unavailable', !ok);
-  $('#sound').title = ok ? 'Sound · M' : 'Sound could not start. Tap to retry.';
+import { CabinAudio } from './audio.js?v=40';
+import { scenes,actionLabel } from './world.js?v=40';
+import { readMemory,saveMemory,parentView,neighbor,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=40';
+import { gamepadCommands } from './input.js?v=40';
+import { CabinRenderer } from './renderer.js?v=40';
+import { notebook,paper as paperContent } from './stories.js?v=40';
+const $=s=>document.querySelector(s),stage=$('#stage'),scene=$('#scene'),hotspots=$('#hotspots'),actions=$('#actions');
+const book=$('#book'),paper=$('#paper');let storage;try{storage=localStorage}catch{}
+const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
+const visit=createVisit(Date.now()^memory.visits);
+const state={view:'room',selected:null,input:'pointer',idle:false,page:memory.page,modal:null,loading:false,actionIndex:0};
+const renderer=new CabinRenderer(scene,$('#weather'));
+const audio=new CabinAudio(ok=>{stage.dataset.audio=ok?'ready':'retry';$('#sound').title=ok?'Sound · M':'Sound could not start. Tap to retry.'});
+let idleTimer,captionTimer,lastFrame=performance.now(),lastTick=0,petUntil=0,goToken=0,musicUntil=0,controller={};
+let lastSaved=JSON.stringify(memory),currentWeather=weatherAt(0,memory.visits);
+function save(){const next=JSON.stringify(memory);if(next!==lastSaved){saveMemory(storage,memory);lastSaved=next}}
+function say(text,duration=4200){clearTimeout(captionTimer);$('#caption').textContent=text;$('#caption').classList.toggle('show',Boolean(text));captionTimer=setTimeout(()=>$('#caption').classList.remove('show'),duration)}
+function wake(){state.idle=false;stage.classList.remove('idle');clearTimeout(idleTimer);idleTimer=setTimeout(()=>{if(state.modal||state.loading)return;state.idle=true;stage.classList.add('idle')},4800)}
+function syncAudio(){audio.mix(state.view,{...memory,weatherWind:currentWeather.wind})}
+function updateSelected(){
+  for(const button of hotspots.querySelectorAll('button'))button.classList.toggle('selected',state.input!=='pointer'&&button.dataset.id===state.selected);
+  for(const [i,button] of [...actions.children].entries())button.classList.toggle('selected',state.input!=='pointer'&&i===state.actionIndex);
+}
+function renderControls(){
+  const spec=scenes[state.view];hotspots.replaceChildren();actions.replaceChildren();
+  for(const item of spec.spots||[]){
+    const button=document.createElement('button');button.className=`spot${item.edge?' edge':''}`;button.dataset.id=item.id;if(item.x>80)button.classList.add('label-left');if(item.x<15)button.classList.add('label-right');button.setAttribute('aria-label',item.label);
+    button.style.cssText=`--x:${item.x}%;--y:${item.y}%;--w:${item.w||8}%;--h:${item.h||13}%;`;
+    const label=document.createElement('span');label.textContent=item.label;button.append(label);
+    if(item.edge){const mark=document.createElement('b');mark.textContent=item.id==='kitchen'&&state.view==='room'?'↶':'‹';mark.setAttribute('aria-hidden','true');button.append(mark)}
+    button.addEventListener('pointerenter',()=>{state.selected=item.id;updateSelected()});
+    button.addEventListener('click',()=>{state.selected=item.id;activate(item)});hotspots.append(button);
+  }
+  for(const id of spec.actions||[]){const button=document.createElement('button');button.className='quiet-control';button.dataset.action=id;button.textContent=actionLabel(id,memory);button.addEventListener('click',()=>perform(id));actions.append(button)}
+  actions.hidden=!spec.actions?.length;$('#back').hidden=state.view==='room';$('#back').setAttribute('aria-label',state.view==='floor'?'Sit back up':`Return to ${scenes[parentView(state.view)].label.toLowerCase()}`);
+  $('#sound').textContent=memory.muted?'Sound off':'Sound on';$('#sound').setAttribute('aria-pressed',String(!memory.muted));updateSelected();
+}
+function refresh(){
+  if(memory.kettleAt&&Date.now()-memory.kettleAt>600000)memory.kettleAt=0;
+  for(const button of actions.children)button.textContent=actionLabel(button.dataset.action,memory);
+  $('#sound').textContent=memory.muted?'Sound off':'Sound on';$('#sound').setAttribute('aria-pressed',String(!memory.muted));
+  renderer.environment(memory,visit,currentWeather);stage.dataset.weather=currentWeather.name;
+  stage.classList.toggle('wrapped',(state.view==='porchSeat'&&memory.blanket)||(state.view==='bed'&&memory.quilt));
+  save();syncAudio();
+}
+async function go(view){
+  if(!scenes[view])return;const token=++goToken;state.loading=true;stage.setAttribute('aria-busy','true');wake();
+  try{
+    if(!await renderer.show(view)||token!==goToken)return;
+    const previous=state.view;state.view=view;state.actionIndex=0;state.selected=scenes[view].default||null;visit.still=0;
+    if(previous!==view)audio.sound(['porch','mudroom'].includes(view)?'wood':'step');
+    closeModal(false);say('');stage.dataset.view=view;stage.setAttribute('aria-label',scenes[view].label);
+    $('#scope-mask').hidden=!scenes[view].scope;
+    if(document.activeElement instanceof HTMLElement)document.activeElement.blur();
+    renderControls();refresh();
+  }catch{say('That part of the cabin could not load. Try again in a moment.')}
+  finally{if(token===goToken){state.loading=false;stage.removeAttribute('aria-busy');wake()}}
+}
+function closeModal(restore=true){
+  if(book.open)book.close();if(paper.open)paper.close();state.modal=null;
+  if(restore){wake();document.activeElement?.blur?.()}
+}
+function back(){if(state.modal){closeModal();return}if(state.view!=='room')go(parentView(state.view))}
+function renderPage(){
+  const [title,text]=notebook[state.page];$('#page-title').textContent=title;$('#page-text').textContent=text;
+  $('#page-number').textContent=String(state.page+1).padStart(2,'0');$('#previous-page').disabled=state.page===0;$('#next-page').disabled=state.page===notebook.length-1;
+  const note=memory.signalSeen?'I left the light on again.':memory.listened?'There is no road on that side of the lake.':'';
+  $('#margin-note').textContent=note;$('#margin-note').hidden=!(state.page===2&&note);memory.page=state.page;save();
+}
+function turnPage(dir){const next=Math.max(0,Math.min(notebook.length-1,state.page+dir));if(next===state.page)return;state.page=next;audio.sound('page');renderPage()}
+function openPaper(id){
+  const content=paperContent(id,memory);if(!content)return;state.modal=id;
+  $('#paper-title').textContent=content.title;$('#paper-text').textContent=content.text;$('#paper-footer').textContent=content.footer;
+  $('#paper-turn').hidden=!(id==='tin');$('#paper-turn').textContent='Wind the small mechanism';
+  if(!paper.open)paper.showModal();$('#close-paper').focus();audio.sound('page');
+}
+function activate(item){if(state.loading)return;wake();audio.wake();if(item.go)go(item.go);else perform(item.do)}
+function act(){
+  if(state.loading)return;wake();audio.wake();
+  if(state.modal==='book'){turnPage(state.page===notebook.length-1?-state.page:1);return}
+  if(state.modal){if(state.modal==='tin'){closeModal();perform('musicbox')}else closeModal();return}
+  const spec=scenes[state.view];if(spec.spots?.length){const item=spec.spots.find(s=>s.id===state.selected)||spec.spots.find(s=>s.id===spec.default)||spec.spots[0];activate(item)}
+  else if(spec.actions?.length)perform(spec.actions[state.actionIndex]||spec.actions[0]);
+}
+function perform(id){
+  wake();audio.wake();const now=Date.now();
+  switch(id){
+    case 'book':state.modal='book';renderPage();book.showModal();$('#next-page').focus();audio.sound('page');break;
+    case 'window':memory.windowOpen=!memory.windowOpen;audio.sound('wood');say(memory.windowOpen?'Cold air. The scent of pine.':'Warmth gathers behind the glass.');break;
+    case 'look':go('windowLake');break;
+    case 'record':memory.recordOn=!memory.recordOn;audio.sound('needle');say(memory.recordOn?(memory.recordSide?'Before the road.':'The long way home.'):'The needle comes to rest.');break;
+    case 'flip':memory.recordSide=1-memory.recordSide;audio.sound('page');say(memory.recordSide?'On the other side, a name in blue pencil.':'The plain label faces up again.');break;
+    case 'tend':if(memory.emberUntil>now){say('It has everything it needs.');break}memory.emberUntil=now+20*60e3;audio.sound('wood');say('The new wood catches slowly.');break;
+    case 'pet':if(now<petUntil)return;petUntil=now+2400;memory.catPets++;audio.sound('purr');say(memory.catPets%3===0?'A tiny chirp. Then an ear turns toward the kitchen.':['A paw uncurls. Then a purr.','You may stay.'][memory.catPets%2]);break;
+    case 'kettle':{
+      const status=kettleState(memory,now);if(status==='ready'){perform('tea');return}
+      if(status==='warming'){say('A faint trembling beneath the lid.');break}
+      memory.kettleAt=now;audio.sound('cup');say('You set the kettle on the warm plate.');break;}
+    case 'tea':if(kettleState(memory,now)==='ready'){memory.teaAt=now;memory.kettleAt=0;audio.sound('cup');say('Two cups. Just in case.');}else say(memory.teaAt?'A little warmth left in the cup.':'The mugs are cool to the touch.');break;
+    case 'porchLamp':memory.porchLamp=!memory.porchLamp;audio.sound('needle');say(memory.porchLamp?'The porch fills with amber light.':'The lake seems a little closer.');break;
+    case 'lamp':memory.loftLamp=!memory.loftLamp;audio.sound('needle');break;
+    case 'blanket':memory.blanket=!memory.blanket;audio.sound('page');say(memory.blanket?'The wool holds the warmth.':'Cold air touches your hands.');break;
+    case 'quilt':memory.quilt=!memory.quilt;audio.sound('page');say(memory.quilt?'The roof creaks softly above you.':'You fold it neatly at your feet.');break;
+    case 'listen':say('');audio.sound(memory.signalSeen?'lakeBell':'owl');break;
+    case 'chime':audio.sound('chime');scene.classList.remove('chime-touched');void scene.offsetWidth;scene.classList.add('chime-touched');break;
+    case 'bowl':memory.birdAt=now;audio.sound('page');say('A few seeds beneath the snow.');break;
+    case 'scope':memory.scopeSharp=!memory.scopeSharp;say(memory.scopeSharp?'There. Between the trees.':'The far shore softens.');audio.sound('needle');break;
+    case 'compass':audio.sound('needle');say(memory.postcardRead?'The needle settles toward the lake. It takes its time.':'The brass is warm. The needle is in no hurry.');break;
+    case 'scarf':memory.scarfTouches++;if(memory.scarfTouches>=3)openPaper('scarf');else{audio.sound('page');say(memory.scarfTouches===1?'The wool smells faintly of cedar.':'A loose stitch catches against your thumb.')}break;
+    case 'postcard':memory.postcardRead=true;openPaper(id);break;
+    case 'letter':memory.letterRead=true;openPaper(id);break;
+    case 'tin':memory.tinVisits++;openPaper(id);break;
+    case 'musicbox':memory.musicbox=!memory.musicbox;musicUntil=visit.elapsed+20;if(memory.musicbox)audio.sound('musicbox');else audio.sound('needle');break;
+    case 'boat':memory.boatMoved=!memory.boatMoved;audio.sound('wood');say(memory.boatMoved?'You turn the little bow toward the window.':'It fits the old mark in the dust.');break;
+    case 'recipe':case 'bench':case 'photograph':openPaper(id);break;
+  }
+  refresh();audio.wake();
+}
+function navigate(dx,dy){
+  wake();if(state.loading)return;
+  if(state.modal==='book'){if(dx)turnPage(dx);return}if(state.modal)return;
+  document.activeElement?.blur?.();
+  const spec=scenes[state.view];if(spec.spots){const points=Object.fromEntries(spec.spots.map(s=>[s.id,[s.x,s.y]]));state.selected=neighbor(state.selected,dx,dy,points,spec.default)}
+  else if(spec.actions?.length>1){state.actionIndex=(state.actionIndex+(dx||dy)+spec.actions.length)%spec.actions.length}
+  updateSelected();
+}
+function mute(){memory.muted=!memory.muted;refresh();audio.wake()}
+async function fullscreen(){try{if(document.fullscreenElement)await document.exitFullscreen();else await stage.requestFullscreen()}catch{say('Fullscreen is not available in this browser.')}}
+function command(id){const dirs={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]};if(dirs[id])navigate(...dirs[id]);else if(id==='back')back();else if(id==='act')act();else if(id==='mute')mute();else if(id==='secondary'){const secondary=scenes[state.view].actions?.[1];if(!state.modal&&secondary)perform(secondary)}}
+$('#back').addEventListener('click',back);$('#sound').addEventListener('click',mute);$('#fullscreen').addEventListener('click',fullscreen);
+$('#close-book').addEventListener('click',()=>closeModal());$('#close-paper').addEventListener('click',()=>closeModal());
+$('#previous-page').addEventListener('click',()=>turnPage(-1));$('#next-page').addEventListener('click',()=>turnPage(1));
+$('#paper-turn').addEventListener('click',()=>{closeModal();perform('musicbox')});
+for(const dialog of [book,paper]){dialog.addEventListener('cancel',event=>{event.preventDefault();closeModal()});dialog.addEventListener('click',event=>{if(event.target===dialog)closeModal()})}
+addEventListener('pointermove',()=>{state.input='pointer';wake();updateSelected()},{passive:true});
+addEventListener('pointerdown',()=>{state.input='pointer';wake();audio.wake()},{passive:true});
+addEventListener('keydown',event=>{
+  if(event.altKey||event.ctrlKey||event.metaKey)return;state.input='keyboard';wake();audio.wake();
+  const key=event.key.toLowerCase(),mapping={arrowleft:'left',a:'left',arrowright:'right',d:'right',arrowup:'up',w:'up',arrowdown:'down',s:'down',escape:'back',backspace:'back',m:'mute',x:'secondary'};
+  if(mapping[key]){event.preventDefault();if(!event.repeat||['left','right','up','down'].includes(mapping[key]))command(mapping[key])}
+  else if(key==='f'){if(!event.repeat)fullscreen()}
+  else if(key==='enter'||key===' '){if(event.target instanceof HTMLButtonElement&&!event.target.hidden)return;event.preventDefault();if(!event.repeat)act()}
 });
-function save() { saveMemory(storage, memory); }
-function say(text, duration = 4300) {
-  clearTimeout(captionTimer);
-  caption.textContent = text;
-  caption.classList.toggle('show', Boolean(text));
-  captionTimer = setTimeout(() => caption.classList.remove('show'), duration);
-}
-function wake() {
-  state.idle = false;
-  stage.classList.remove('idle');
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    if (state.view === 'book') return;
-    state.idle = true;
-    stage.classList.add('idle');
-    document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-  }, 4800);
-}
-function updateControls() {
-  const view = state.view;
-  const labels = {
-    books: 'Open the clothbound book', fire: memory.emberUntil > Date.now() ? 'Let the fire settle' : 'Add a log',
-    window: memory.windowOpen ? 'Close the window' : 'Crack the window',
-    record: memory.recordOn ? 'Lift the needle' : 'Lower the needle', cat: 'Pet the cat',
-  };
-  const label = labels[view];
-  actionPanel.hidden = !label;
-  primary.textContent = label || '';
-  back.hidden = view === 'room' || view === 'book';
-  back.setAttribute('aria-label', view === 'floor' ? 'Sit back up' : view === 'chair' ? 'Get up from the armchair' : 'Return to room');
-  $('#sound').textContent = memory.muted ? 'Sound off' : 'Sound on';
-  $('#sound').setAttribute('aria-pressed', String(!memory.muted));
-  scene.classList.toggle('record-playing', memory.recordOn);
-  scene.classList.toggle('window-open', memory.windowOpen);
-  scene.classList.toggle('well-tended', memory.emberUntil > Date.now());
-  for (const spot of document.querySelectorAll('.spot')) {
-    spot.hidden = view !== 'room';
-    spot.classList.toggle('selected', view === 'room' && state.input !== 'pointer' && spot.dataset.id === state.selected);
+addEventListener('visibilitychange',()=>{lastFrame=performance.now();if(document.hidden)save();else refresh()});
+addEventListener('pagehide',save);
+addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?'Leave fullscreen':'Fullscreen'});
+function frame(now){
+  const dt=(now-lastFrame)/1000;lastFrame=now;
+  if(!document.hidden){
+    const events=advanceWorld(visit,memory,state.view,dt);
+    for(const event of events){if(event==='musicbox'&&!memory.musicbox&&memory.tinVisits===0)continue;audio.sound(event)}
+    if(memory.musicbox&&visit.elapsed>musicUntil){memory.musicbox=false;refresh()}
+    if(now-lastTick>1000){lastTick=now;currentWeather=weatherAt(visit.elapsed,memory.visits);refresh()}
+    renderer.drawSnow(now);
+    let pad;try{pad=[...(navigator.getGamepads?.()||[])].find(p=>p?.connected)}catch{}
+    const result=gamepadCommands(pad,controller,now);controller=result.state;
+    if(result.commands.length){state.input='gamepad';wake();audio.wake();for(const id of result.commands)command(id);updateSelected()}
   }
-  $('#floor-spot').hidden = view !== 'chair';
-  $('#floor-spot').classList.toggle('selected', view === 'chair' && state.input !== 'pointer');
-}
-function updateVideos() {
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const visible = state.view === 'chair' ? 'chair' : state.view === 'floor' ? 'floor' : 'room';
-  for (const image of scene.querySelectorAll(':scope > img')) {
-    image.setAttribute('aria-hidden', String(image.id !== `${visible}-view`));
-  }
-  for (const video of document.querySelectorAll('video')) {
-    const active = video.dataset.view === visible && !document.hidden && !reduced;
-    if (active) video.play().catch(() => {}); else video.pause();
-    video.parentElement.classList.toggle('motion-off', reduced);
-  }
-}
-function go(view) {
-  const previous = state.view;
-  state.view = view;
-  say('');
-  scene.classList.remove('chair-view', 'floor-view', 'cat-pet');
-  if (view === 'chair' || view === 'floor') scene.classList.add(`${view}-view`);
-  const point = things[view === 'book' ? 'books' : view];
-  scene.style.transform = point ? `scale(${point.scale}) translate(${(50-point.x)*(point.scale-1)/point.scale}%,${(50-point.y)*(point.scale-1)/point.scale}%)` : '';
-  stage.dataset.view = view;
-  stage.setAttribute('aria-label', view === 'floor' ? 'Lying beside the fireplace' : view === 'chair' ? 'Sitting in the armchair' : 'Cozy cabin');
-  if (view === 'book') {
-    renderPage(); book.showModal(); $('#next-page').focus();
-  } else if (book.open) book.close();
-  if (view === 'room') state.selected = previous === 'chair' ? 'chair' : positions[previous] ? previous : state.selected;
-  if (view !== 'book' && document.activeElement instanceof HTMLElement) document.activeElement.blur();
-  updateControls(); updateVideos(); audio.mix(view, memory); wake();
-  if (view === 'chair' || view === 'floor') audio.sound('wood');
-}
-function returnBack() { if (state.view !== 'room') go(parentView(state.view)); }
-function renderPage() {
-  const [title, text] = pages[state.page];
-  pageTitle.textContent = title;
-  pageText.textContent = text;
-  $('#page-number').textContent = String(state.page + 1).padStart(2, '0');
-  $('#previous-page').disabled = state.page === 0;
-  $('#next-page').disabled = state.page === pages.length - 1;
-  $('#margin-note').hidden = !(memory.listened && state.page === 2);
-  memory.page = state.page; save();
-}
-function turnPage(direction) {
-  const next = Math.max(0, Math.min(pages.length - 1, state.page + direction));
-  if (next === state.page) return;
-  state.page = next; audio.sound('page'); renderPage();
-}
-function act() {
-  wake(); audio.wake();
-  switch (state.view) {
-    case 'room': go(state.selected || 'chair'); break;
-    case 'chair': go('floor'); break;
-    case 'floor': break;
-    case 'books': audio.sound('page'); go('book'); break;
-    case 'book': turnPage(state.page === pages.length - 1 ? -state.page : 1); break;
-    case 'window':
-      memory.windowOpen = !memory.windowOpen; audio.sound('wood');
-      say(memory.windowOpen ? 'Cold air. The scent of pine.' : 'Warmth gathers behind the glass.'); break;
-    case 'record':
-      memory.recordOn = !memory.recordOn; audio.sound('needle');
-      say(memory.recordOn ? 'The long way home.' : 'The needle comes to rest.'); break;
-    case 'fire':
-      if (memory.emberUntil > Date.now()) { say('It has everything it needs.'); break; }
-      memory.emberUntil = Date.now() + 20 * 60e3; audio.sound('wood');
-      say('The new wood catches slowly.'); break;
-    case 'cat':
-      if (performance.now() < petUntil) return;
-      petUntil = performance.now() + 2300; audio.sound('purr');
-      say(['One ear turns toward you.', 'A paw uncurls. Then a purr.', 'You may stay.'][Math.floor(Math.random() * 3)]);
-      scene.classList.add('cat-pet'); break;
-  }
-  save(); updateControls(); audio.mix(state.view, memory);
-}
-function navigate(dx, dy) {
-  wake();
-  if (state.view === 'book') { if (dx) turnPage(dx); return; }
-  if (state.view === 'room') state.selected = neighbor(state.selected, dx, dy);
-  updateControls();
-}
-function mute() { memory.muted = !memory.muted; save(); updateControls(); audio.mix(state.view, memory); audio.wake(); }
-async function fullscreen() {
-  try { if (document.fullscreenElement) await document.exitFullscreen(); else await stage.requestFullscreen(); }
-  catch { say('Fullscreen is not available in this browser.'); }
-}
-for (const spot of document.querySelectorAll('.spot')) {
-  spot.addEventListener('click', () => { state.selected = spot.dataset.id; go(spot.dataset.id); });
-  spot.addEventListener('pointerenter', () => { state.selected = spot.dataset.id; });
-}
-$('#floor-spot').addEventListener('click', () => go('floor'));
-back.addEventListener('click', returnBack);
-primary.addEventListener('click', act);
-$('#sound').addEventListener('click', mute);
-$('#fullscreen').addEventListener('click', fullscreen);
-$('#close-book').addEventListener('click', returnBack);
-$('#next-page').addEventListener('click', () => turnPage(1));
-$('#previous-page').addEventListener('click', () => turnPage(-1));
-book.addEventListener('cancel', event => { event.preventDefault(); returnBack(); });
-book.addEventListener('click', event => { if (event.target === book) returnBack(); });
-addEventListener('pointermove', () => { state.input = 'pointer'; wake(); updateControls(); }, { passive: true });
-addEventListener('pointerdown', () => { state.input = 'pointer'; wake(); audio.wake(); }, { passive: true });
-addEventListener('keydown', event => {
-  if (event.altKey || event.ctrlKey || event.metaKey) return;
-  state.input = 'keyboard'; wake(); audio.wake();
-  const key = event.key.toLowerCase();
-  const directions = { arrowleft: [-1,0], a: [-1,0], arrowright: [1,0], d: [1,0], arrowup: [0,-1], w: [0,-1], arrowdown: [0,1], s: [0,1] };
-  if (directions[key]) { event.preventDefault(); navigate(...directions[key]); }
-  else if (key === 'escape' || key === 'backspace') { event.preventDefault(); returnBack(); }
-  else if (key === 'm') mute();
-  else if (key === 'f') fullscreen();
-  else if (key === 'enter' || key === ' ') {
-    // Native focused buttons retain normal keyboard activation, including dialog controls.
-    if (event.target instanceof HTMLButtonElement && !event.target.hidden) return;
-    event.preventDefault(); if (!event.repeat) act();
-  }
-});
-addEventListener('visibilitychange', () => { lastFrame = performance.now(); updateVideos(); });
-matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', updateVideos);
-addEventListener('fullscreenchange', () => {
-  $('#fullscreen').textContent = document.fullscreenElement ? 'Leave fullscreen' : 'Fullscreen';
-});
-let lastButtons = [], lastAxis = '', repeatAt = 0;
-function frame(now) {
-  const elapsed = Math.min((now - lastFrame) / 1000, 1); lastFrame = now;
-  if (!document.hidden) {
-    if (['chair','floor','window'].includes(state.view) && !memory.recordOn) {
-      quietTime += elapsed;
-      if (quietTime > 75 && !memory.listened) { memory.listened = true; save(); }
-    }
-    if (now > nextGlimmer) {
-      glimmerUntil = now + 9000;
-      nextGlimmer = now + 110000 + Math.random() * 130000;
-    }
-    scene.classList.toggle('distant-light', now < glimmerUntil);
-  }
-  let pad;
-  try { pad = [...(navigator.getGamepads?.() || [])].find(p => p?.connected); } catch {}
-  if (pad) {
-    const buttons = pad.buttons.map(button => button.pressed);
-    const edge = i => buttons[i] && !lastButtons[i];
-    const axis = Math.abs(pad.axes[0] || 0) > .55 ? (pad.axes[0] > 0 ? 'right' : 'left')
-      : Math.abs(pad.axes[1] || 0) > .55 ? (pad.axes[1] > 0 ? 'down' : 'up') : '';
-    const axisEdge = axis && (axis !== lastAxis || now > repeatAt);
-    if (buttons.some((pressed, i) => pressed && !lastButtons[i]) || axisEdge) {
-      state.input = 'gamepad'; wake(); audio.wake();
-      if (edge(1)) returnBack(); else if (edge(0)) act();
-      if (edge(12) || (axisEdge && axis === 'up')) navigate(0,-1);
-      if (edge(13) || (axisEdge && axis === 'down')) navigate(0,1);
-      if (edge(14) || (axisEdge && axis === 'left')) navigate(-1,0);
-      if (edge(15) || (axisEdge && axis === 'right')) navigate(1,0);
-      if (edge(9)) mute();
-      if (axisEdge) repeatAt = now + (axis !== lastAxis ? 420 : 220);
-      updateControls();
-    }
-    lastButtons = buttons; lastAxis = axis;
-  } else { lastButtons = []; lastAxis = ''; }
   requestAnimationFrame(frame);
 }
-updateControls(); updateVideos(); audio.mix('room', memory); wake(); requestAnimationFrame(frame);
+renderer.load('room').then(()=>go('room')).catch(()=>say('The cabin could not load. Please refresh.'));
+requestAnimationFrame(frame);

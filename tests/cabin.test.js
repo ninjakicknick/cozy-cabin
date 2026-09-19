@@ -13,7 +13,8 @@ test('saved object states survive a return visit and invalid values are bounded'
   let data;
   const store = { getItem: () => data, setItem: (_, value) => { data = value; } };
   saveMemory(store, { windowOpen: true, recordOn: true, page: 2, listened: true });
-  assert.deepEqual(readMemory(store), { windowOpen: true, recordOn: true, page: 2, listened: true, emberUntil: 0, muted: false });
+  const restoredState=readMemory(store);
+  for(const [key,value] of Object.entries({windowOpen:true,recordOn:true,page:2,listened:true,emberUntil:0,muted:false}))assert.equal(restoredState[key],value);
   data = JSON.stringify({ page: 99, emberUntil: 1e30, muted: 'true' });
   const restored = readMemory(store);
   assert.equal(restored.page, 3);

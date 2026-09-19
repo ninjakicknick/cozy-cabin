@@ -1,42 +1,36 @@
 # Cozy Cabin
 
-A small place to stay for a while. Three connected viewpoints, a fire, snow beyond the windows, a sleeping cat, a record player, and a few things left by someone else.
+A small, persistent place to retreat into. Sit by the fire, turn toward the kitchen, go upstairs, or step out under the porch roof. There are things to handle and traces of other evenings here. None of them need completing.
 
-The experience stays quiet. There are no objectives, inventories, scores, or required discoveries. Sound begins with the first interaction, as required by browsers. Controls fade after a few seconds; moving, touching, or using a key/controller brings them back.
-
-## Visit
-
-https://ninjakicknick.github.io/cozy-cabin/
+[Visit the cabin](https://ninjakicknick.github.io/cozy-cabin/)
 
 ## Controls
 
-- **Mouse / touch:** choose an object, then its natural action. From the chair, choose the rug to lie by the fire.
-- **Keyboard:** arrows / WASD choose spatially; Enter / Space interacts; Escape / Backspace returns one viewpoint. M toggles sound; F toggles fullscreen. Tab works with all visible controls.
-- **Controller:** D-pad or left stick chooses; A interacts; B returns. In the chair, A moves to the floor. Start toggles sound. In the book, left/right turns pages.
+- **Mouse / touch:** choose an object or doorway. The curved arrow near the lower edge of the living room turns toward the kitchen. Controls fade when you settle in; a movement, touch or key brings them back.
+- **Keyboard:** arrows / WASD select spatially; Enter / Space interacts; Escape / Backspace goes back. In views with two actions, left/right selects an action and X uses the second action. M toggles sound; F toggles fullscreen. Native Tab navigation remains available.
+- **Gamepad:** D-pad / left stick selects, A interacts, B returns, X uses the secondary action, Start toggles sound. In the book, left/right turns pages.
 
-The web version is the priority; the static, dependency-free runtime also suits a small TV-connected machine. Landscape gives the artwork the most room, but portrait remains usable. Reduced motion preserves still artwork and stops video playback.
+Sound starts on the first gesture. A saved sound preference, object states and notebook page survive visits on this device. Every visit starts in the living room. Blocked browser storage does not prevent entry.
 
-## Run locally
+## Development
 
-Serve this folder over HTTP (`python -m http.server 8000`) and open localhost:8000. ES modules require a server rather than opening index.html directly. There is no build or runtime package dependency. `npm test` runs Node's built-in test runner.
+Static ES modules; no framework, no build, no runtime dependencies. Serve with `python -m http.server 8000`. Run `npm test` for Node's built-in regression tests.
 
-## Implementation
+- `world.js`: art, scene connections, objects, coordinates, actions and labels.
+- `app.js`: shared interaction controller and accessible object readers.
+- `renderer.js`: lazy image loading, cancellable scene transitions, active-view video playback, masked weather.
+- `state.js`: validated local memory, navigation, active-visit timing and bounded ambient events.
+- `input.js`: pure gamepad interpretation shared with tests.
+- `audio.js`: native seamless ambience, distance mixing and self-cleaning synthesized sound events.
+- `stories.js`: short physical writing found around the cabin.
+- `tests/viewport.html`: noindex responsive fixture, using the real application inside portrait/landscape frames.
 
-- `app.js`: one navigation state, scene rendering, object interactions, accessible book, keyboard and gamepad input, and subtle ambient events.
-- `state.js`: spatial navigation and versioned, defensive device-local persistence.
-- `audio.js`: decoded Web Audio loops with baked overlap seams, cancellable gain/filter transitions, and synthesized interaction sounds. Looping does not depend on JS scheduling or requestAnimationFrame.
-- `style.css`: original scene alignments preserved; idle controls, book styling, small environmental changes.
+Images load on first arrival, not all at startup. Only current-scene videos play. Snow is masked to windows/exterior areas and capped at 20 fps. Reduced motion disables it and the video masks. Weather and sound transitions are gradual; the ambience loops independently of JavaScript timing.
 
-Only the active viewpoint's videos run. Object states, the book's page, sound preference, and a small discovery persist locally; the visitor always arrives in the main room. Browser storage can be blocked without breaking the cabin. No analytics, account, server, or remote AI requests.
+## Art and sound
 
-## Assets
+Original room/chair/floor imagery, video and wind/fire recordings remain intact. New scene artwork was generated from those references, with distinct light-off variants, then encoded as WebP. See `assets/scenes/PROVENANCE.md` for production notes. Original supplied assets retain their existing provenance; this pass introduced no third-party recordings.
 
-Existing cabin images, animations and fire/wind recordings were supplied by the project owner and preserved. The existing source notes do not establish distribution licenses; no additional third-party recordings were introduced.
+The two record sides are original synthesized miniatures: `the-long-way-home.mp3` and `before-the-road.mp3`. Their deterministic Python / NumPy score generators are in `tools/`. Other small sound events are synthesized locally. No account, analytics, server calls or live AI service is required.
 
-`assets/audio/the-long-way-home.mp3` is an original synthesized miniature created for this project. `tools/make-record.py` contains its deterministic score and generator (Python + NumPy); it writes `/tmp/cabin-record.wav`. Encode with ffmpeg at 96 kbps mono. Interaction sounds are synthesized at runtime.
-
-## Testing and next work
-
-Node regression tests cover spatial reachability, nested back navigation, corrupt/unavailable storage, persistence validation, and audio seam continuity. Browser verification notes for each development pass belong in `DEVELOPMENT.md`.
-
-Keep new spaces visually consistent with the three established views. Prefer a handful of characteristic interactions over more hotspots. Do not turn the quiet discoveries into a checklist.
+Physical TV/gamepad use and subjective speaker/headphone sound quality still need hardware verification. Responsive browser checks are not a substitute for testing mobile browser audio policy on a real phone.
