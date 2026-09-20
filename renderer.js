@@ -101,7 +101,14 @@ export class CabinRenderer {
       // the handoff after refreshing state, preventing a one-frame flash.
     }
   }
-  finishPanel(){this.scene.classList.remove('revealing');this.revealAnimation?.cancel();this.revealAnimation=null}
+  finishPanel(open){
+    // Apply the final state-art visibility synchronously with removing the
+    // animated leaf. Waiting for the next render/refresh frame can expose the
+    // opposite authored plate for a single frame.
+    this.scene.classList.toggle('secret-open',Boolean(open));
+    this.scene.classList.remove('revealing');
+    this.revealAnimation?.cancel();this.revealAnimation=null;
+  }
   reveal(){return this.panel(true)}
   conceal(){return this.panel(false)}
   ring(id){this.ringUntil=performance.now()+2400;this.ringColor=id==='toneLow'?'244,170,80':id==='toneMiddle'?'157,196,182':'178,190,241';}
