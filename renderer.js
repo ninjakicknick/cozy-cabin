@@ -99,9 +99,9 @@ export class CabinRenderer {
   drawLantern(now,memory){
     if(now-this.lastLantern<80)return;this.lastLantern=now;
     const c=this.lctx,w=900,h=506;if(this.lantern.width!==w){this.lantern.width=w;this.lantern.height=h}c.clearRect(0,0,w,h);
-    if(scenes[this.view].art!=='snug'||(!memory.lanternTurning&&now>this.ringUntil))return;
+    const lanternView=scenes[this.view].art;if(!['snug','snugBed'].includes(lanternView)||(!memory.lanternTurning&&now>this.ringUntil))return;
     const t=this.motion.matches?0:now/24000;
-    c.save();c.beginPath();c.moveTo(0,0);c.lineTo(225,0);c.lineTo(280,170);c.lineTo(640,190);c.lineTo(650,0);c.lineTo(900,0);c.lineTo(900,506);c.lineTo(660,400);c.lineTo(600,260);c.lineTo(60,270);c.closePath();c.clip();
+    c.save();c.beginPath();if(lanternView==='snugBed'){c.rect(0,0,w,h)}else{c.moveTo(0,0);c.lineTo(225,0);c.lineTo(280,170);c.lineTo(640,190);c.lineTo(650,0);c.lineTo(900,0);c.lineTo(900,506);c.lineTo(660,400);c.lineTo(600,260);c.lineTo(60,270);c.closePath()}c.clip();
     for(let i=0;i<22;i++){
       const x=450+Math.cos(i*2.399+t)*430,y=220+Math.sin(i*1.41+t*.6)*190;
       const pulse=now<this.ringUntil?(this.ringUntil-now)/2400:0;
