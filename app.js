@@ -112,10 +112,19 @@ async function perform(id){
       return;
     }
     case 'opening':
-      if(!memory.panelOpen){memory.panelOpen=true;audio.sound('wood');say('The hidden panel swings inward.');break}
+      if(!memory.panelOpen){
+        memory.panelOpen=true;audio.sound('wood');say('The hidden panel swings inward.');
+        state.loading=true;stage.setAttribute('aria-busy','true');refresh();
+        try{await renderer.reveal()}finally{state.loading=false;stage.removeAttribute('aria-busy');wake()}
+        break;
+      }
       state.openingMenu=true;state.selected='action:enterSecret';renderControls();return;
     case 'enterSecret':state.openingMenu=false;go('snug');return;
-    case 'closePanel':memory.panelOpen=false;state.openingMenu=false;audio.sound('wood');say('The panel settles flush with the wall.');break;
+    case 'closePanel':
+      state.openingMenu=false;audio.sound('wood');say('The panel settles flush with the wall.');
+      state.loading=true;stage.setAttribute('aria-busy','true');
+      try{await renderer.conceal();memory.panelOpen=false}finally{state.loading=false;stage.removeAttribute('aria-busy');wake()}
+      break;
     case 'lantern':memory.lanternTurning=!memory.lanternTurning;audio.sound('winding');break;
     case 'toneLow':case 'toneMiddle':case 'toneHigh':audio.sound(id,false);renderer.ring(id);break;
     case 'book':state.modal='book';renderPage();book.showModal();$('#next-page').focus();audio.sound('page');break;
