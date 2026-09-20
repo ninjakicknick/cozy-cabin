@@ -4,7 +4,7 @@
   "description": "A small cabin to retreat into. Take your time.",
   "start_url": "./",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#0b0907",
   "theme_color": "#0b0907",
