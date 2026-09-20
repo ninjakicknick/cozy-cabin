@@ -107,7 +107,7 @@ async function perform(id){
       if(result.reveal){
         const token=goToken;state.loading=true;stage.setAttribute('aria-busy','true');
         refresh();
-        try{await renderer.reveal();}finally{if(goToken===token){refresh();renderer.finishPanel();state.loading=false;stage.removeAttribute('aria-busy');state.selected='passage';renderControls();wake()}}
+        try{await renderer.reveal();}finally{if(goToken===token){refresh();renderer.finishPanel(true);state.loading=false;stage.removeAttribute('aria-busy');state.selected='passage';renderControls();wake()}}
       }else{renderControls();refresh()}
       return;
     }
@@ -115,7 +115,7 @@ async function perform(id){
       if(!memory.panelOpen){
         memory.panelOpen=true;audio.sound('wood');say('The hidden panel swings inward.');
         state.loading=true;stage.setAttribute('aria-busy','true');refresh();
-        try{await renderer.reveal()}finally{refresh();renderer.finishPanel();state.loading=false;stage.removeAttribute('aria-busy');wake()}
+        try{await renderer.reveal()}finally{refresh();renderer.finishPanel(true);state.loading=false;stage.removeAttribute('aria-busy');wake()}
         break;
       }
       state.openingMenu=true;state.selected='action:enterSecret';renderControls();return;
@@ -123,7 +123,7 @@ async function perform(id){
     case 'closePanel':
       state.openingMenu=false;audio.sound('wood');say('The panel settles flush with the wall.');
       state.loading=true;stage.setAttribute('aria-busy','true');
-      try{await renderer.conceal();memory.panelOpen=false;refresh()}finally{renderer.finishPanel();state.loading=false;stage.removeAttribute('aria-busy');wake()}
+      try{await renderer.conceal();memory.panelOpen=false;refresh()}finally{renderer.finishPanel(true);state.loading=false;stage.removeAttribute('aria-busy');wake()}
       break;
     case 'lantern':memory.lanternTurning=!memory.lanternTurning;audio.sound('winding');break;
     case 'toneLow':case 'toneMiddle':case 'toneHigh':audio.sound(id,false);renderer.ring(id);break;
