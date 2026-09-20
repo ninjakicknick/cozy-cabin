@@ -39,3 +39,5 @@ The two record sides are original synthesized miniatures: `the-long-way-home.mp3
 Physical TV/gamepad use and subjective speaker/headphone sound quality still need hardware verification. Responsive browser checks are not a substitute for testing mobile browser audio policy on a real phone.
 
 Lighting: the quiet Lights control toggles the cabin lamps and candles while leaving the fire burning. Keyboard **L**, or the controller’s top face button (**Y** on Xbox/8BitDo layouts). The setting survives return visits; the existing loft and porch switches can still be used individually.
+
+The loft telescope now looks across an explorable shore. Drag gently to move the view, or hold arrows / WASD or the controller stick / D-pad. A / Enter adjusts focus; B / Escape returns. Aim and focus are remembered. Life on the far shore keeps its own time, whether or not you are watching. Nothing there needs collecting.

@@ -1,4 +1,4 @@
-import { clockLabel } from './clock.js?v=65';
+import { clockLabel } from './clock.js?v=66';
 // Scene coordinates are percentages in the original artwork, independent of screen size.
 // A scene owns its exits and objects; input devices all use the same definitions.
 const spot = (id, label, x, y, target, kind = 'go', extra = {}) => ({id,label,x,y,[kind]:target,...extra});
@@ -49,7 +49,7 @@ export const scenes = {
     spot('lamp','The desk lamp',50,33,'lamp','do'),spot('telescope','Look through the telescope',69,36,'telescope','go'),
     spot('cupboard','The little cupboard',88,54,'eaves','go',{w:17,h:30}),spot('stairs','Go downstairs',17,87,'kitchen','go',{edge:true,w:20,h:20})]},
   bed:{art:'loft',label:'Under the quilt',parent:'loft',zoom:[1.55,34,39],rest:true,actions:['quilt']},
-  telescope:{art:'porch',label:'Through the telescope',parent:'loft',zoom:[3.8,69,45],rest:true,scope:true,actions:['scope']},
+  telescope:{art:'porch',label:'Through the telescope',parent:'loft',rest:true,scope:true,actions:['scope']},
   eaves:{art:'eaves',label:'Under the eaves',parent:'loft',default:'cushion',rest:true,spots:[
     spot('tin','Open the biscuit tin',28,68,'tin','do'),spot('boat','The small wooden boat',35,55,'boat','do'),
     spot('cushion','Settle on the cushion',64,65,'cushion','go',{w:24,h:20}),spot('picture','Look at the pinned photograph',80,34,'photograph','do'),
