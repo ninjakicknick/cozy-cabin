@@ -37,6 +37,7 @@ button:focus-visible{outline:2px solid #f5dca6;outline-offset:4px}
 #toolbar{right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:flex;gap:8px}
 .quiet-control{padding:10px 16px;border:1px solid #ead2a72e;border-radius:30px;background:#150e09b8;color:#f3e3c7;backdrop-filter:blur(8px);font-size:15px;box-shadow:0 3px 18px #0002}
 .quiet-control:hover,.quiet-control.selected{border-color:#f3d7a97d;background:#2d2114d9}
+@media(display-mode:fullscreen),(display-mode:standalone){#fullscreen{display:none}}
 #actions{bottom:max(86px,13%);left:50%;transform:translateX(-50%);display:flex;gap:10px;max-width:92vw;justify-content:center}
 #caption{position:fixed;bottom:max(25px,5%);left:50%;transform:translateX(-50%);z-index:14;max-width:min(88vw,680px);padding:9px 15px;border-radius:6px;background:#150e099c;font-size:16px;line-height:1.5;text-align:center;opacity:0;transition:opacity .7s;pointer-events:none;text-shadow:0 1px 5px #000}
 #caption.show{opacity:1}
