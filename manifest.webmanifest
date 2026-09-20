@@ -1,0 +1,19 @@
+{
+  "name": "Cozy Cabin",
+  "short_name": "Cozy Cabin",
+  "description": "A small cabin to retreat into. Take your time.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0907",
+  "theme_color": "#0b0907",
+  "icons": [
+    {
+      "src": "assets/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
