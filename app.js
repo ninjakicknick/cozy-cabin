@@ -1,11 +1,12 @@
-import { clockAction, canEnter } from './clock.js?v=65';
-import { teaWarmth, rememberTea } from './rhythms.js?v=65';
-import { CabinAudio } from './audio.js?v=65';
-import { scenes,actionLabel,visibleSpots } from './world.js?v=65';
-import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=65';
-import { gamepadCommands } from './input.js?v=65';
-import { CabinRenderer } from './renderer.js?v=65';
-import { notebook,paper as paperContent } from './stories.js?v=65';
+import { Telescope } from './telescope.js?v=66';
+import { clockAction, canEnter } from './clock.js?v=66';
+import { teaWarmth, rememberTea } from './rhythms.js?v=66';
+import { CabinAudio } from './audio.js?v=66';
+import { scenes,actionLabel,visibleSpots } from './world.js?v=66';
+import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=66';
+import { gamepadCommands } from './input.js?v=66';
+import { CabinRenderer } from './renderer.js?v=66';
+import { notebook,paper as paperContent } from './stories.js?v=66';
 const $=s=>document.querySelector(s),stage=$('#stage'),scene=$('#scene'),hotspots=$('#hotspots'),actions=$('#actions');
 const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchParams(location.search).get('testVisit')==='clock'?{getItem:()=>sessionStorage.getItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default')),setItem:(_,v)=>sessionStorage.setItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default'),v)}:localStorage}catch{}
 const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
@@ -14,6 +15,7 @@ if(memory.recordOn&&!memory.life.recordAt)memory.life.recordAt=Date.now();
 const arrival=memory.life.lastRest&&canEnter(memory.life.lastRest,memory)&&Date.now()-memory.life.lastSeen<20*60000?memory.life.lastRest:'room';
 const state={view:'room',selected:null,input:'pointer',idle:false,page:memory.page,modal:null,loading:false,actionIndex:0,openingMenu:false};
 const renderer=new CabinRenderer(scene,$('#weather'));
+const telescope=new Telescope($('#telescope'),memory,()=>wake(),()=>save(true));
 const audio=new CabinAudio(ok=>{stage.dataset.audio=ok?'ready':'retry';$('#sound').title=ok?'Sound · M':'Sound could not start. Tap to retry.'});
 let idleTimer,captionTimer,lastFrame=performance.now(),lastTick=0,petUntil=0,goToken=0,controller={},lastSaveAt=0;
 let lastSaved=JSON.stringify(memory),currentWeather=weatherAt(Date.now(),memory.life.seed);
@@ -55,11 +57,14 @@ function refresh(){
 async function go(view){
   if(!scenes[view]||!canEnter(view,memory))return;const token=++goToken;state.loading=true;stage.setAttribute('aria-busy','true');wake();
   try{
-    if(!await renderer.show(view)||token!==goToken)return;
+    if(view==='telescope')await telescope.load();
+    if(token!==goToken||!await renderer.show(view)||token!==goToken)return;
+    telescope.show(view==='telescope');
     const previous=state.view;state.view=view;state.actionIndex=0;state.openingMenu=false;state.selected=scenes[view].default||null;visit.still=0;
     if(previous!==view)audio.sound(['porch','mudroom','snug'].includes(view)?'wood':'step');
     closeModal(false);say('');stage.dataset.view=view;stage.setAttribute('aria-label',scenes[view].label);
     $('#scope-mask').hidden=!scenes[view].scope;
+    if(view==='telescope'&&!telescope.hinted){telescope.hinted=true;say('Drag gently to look around. Arrow keys work too.',6000)}
     if(document.activeElement instanceof HTMLElement)document.activeElement.blur();
     renderControls();refresh();
   }catch{say('That part of the cabin could not load. Try again in a moment.')}
@@ -133,7 +138,7 @@ async function perform(id){
     case 'sip':if(now-memory.life.sippedAt<8000){say('You hold the cup a little longer.');break}memory.life.sippedAt=now;memory.life.teaPlace=state.view;audio.sound('cup');say(teaWarmth(memory)>.65?'Still a little too hot.':teaWarmth(memory)>.25?'Just warm enough.':'The last sip has gone cool.');break;
     case 'chime':audio.sound('chime',false);scene.classList.remove('chime-touched');void scene.offsetWidth;scene.classList.add('chime-touched');break;
     case 'bowl':memory.birdAt=now;memory.life.fedAt=now;audio.sound('page');say('A few seeds beneath the snow.');break;
-    case 'scope':memory.scopeSharp=!memory.scopeSharp;say(memory.scopeSharp?'There. Between the trees.':'The far shore softens.');audio.sound('needle');break;
+    case 'scope':memory.telescope.sharp=!memory.telescope.sharp;audio.sound('needle');break;
     case 'compass':audio.sound('needle');say(memory.postcardRead?'The needle settles toward the lake. It takes its time.':'The brass is warm. The needle is in no hurry.');break;
     case 'scarf':memory.scarfTouches++;if(memory.scarfTouches>=3)openPaper('scarf');else{audio.sound('page');say(memory.scarfTouches===1?'The wool smells faintly of cedar.':'A loose stitch catches against your thumb.')}break;
     case 'postcard':memory.postcardRead=true;openPaper(id);break;
@@ -149,6 +154,7 @@ function navigate(dx,dy){
   wake();if(state.loading)return;
   if(state.modal==='book'){if(dx)turnPage(dx);return}if(state.modal)return;
   document.activeElement?.blur?.();
+  if(state.view==='telescope'){return}
   const spec=scenes[state.view];if(spec.spots){const points=navigationPoints(state.view,availableActions(),memory);state.selected=neighbor(state.selected,dx,dy,points,spec.default)}
   else if(availableActions().length>1){state.actionIndex=(state.actionIndex+(dx||dy)+availableActions().length)%availableActions().length}
   updateSelected();
@@ -171,6 +177,7 @@ addEventListener('pointerdown',()=>{state.input='pointer';wake();audio.wake()},{
 addEventListener('keydown',event=>{
   if(event.altKey||event.ctrlKey||event.metaKey)return;state.input='keyboard';wake();audio.wake();
   const key=event.key.toLowerCase(),mapping={arrowleft:'left',a:'left',arrowright:'right',d:'right',arrowup:'up',w:'up',arrowdown:'down',s:'down',escape:'back',backspace:'back',m:'mute',l:'lights',x:'secondary'};
+  if(!state.modal&&!state.loading&&telescope.key(key)){event.preventDefault();return}
   if(mapping[key]){event.preventDefault();if(!event.repeat||['left','right','up','down'].includes(mapping[key]))command(mapping[key])}
   else if(key==='f'){if(!event.repeat)fullscreen()}
   else if(key==='enter'||key===' '){if(event.target instanceof HTMLButtonElement&&!event.target.hidden)return;event.preventDefault();if(!event.repeat)act()}
@@ -186,6 +193,8 @@ function frame(now){
     if(now-lastTick>1000){lastTick=now;currentWeather=weatherAt(Date.now(),memory.life.seed);refresh()}
     renderer.drawSnow(now);renderer.drawLantern(now,memory);
     let pad;try{pad=[...(navigator.getGamepads?.()||[])].find(p=>p?.connected)}catch{}
+    telescope.signal=visit.elapsed<visit.signalUntil;
+    telescope.update(dt,now,state.loading||state.modal?null:pad);
     const result=gamepadCommands(pad,controller,now);controller=result.state;
     if(result.commands.length){state.input='gamepad';wake();audio.wake();for(const id of result.commands)command(id);updateSelected()}
   }

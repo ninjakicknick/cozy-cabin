@@ -16,7 +16,7 @@ for(const [name,old] of [['fresh',{}],['existing',{windowOpen:true,page:3,loftLa
   assert.equal(visibleSpots('mudroom',m).find(s=>s.id==='key').label,'The empty hook');
   clockAction(m,'clock');assert.equal(m.clockKey,'clock');assert.equal(m.secretOpen,false);m=reload(m);
   assert.equal(clockAction(m,'clock').reveal,true);assert.equal(canEnter('snug',m),true);assert.equal(m.clockRunning,true);
-  assert.equal(visibleSpots('clockWall',m).find(s=>s.id==='passage').go,'snug');
+  assert.equal(visibleSpots('clockWall',m).find(s=>s.id==='passage').do,'opening');
   assert.equal(parentView('snugRest'),'snug');assert.equal(parentView('snug'),'clockWall');
   m=reload(m);assert.equal(m.secretOpen,true);clockAction(m,'clock');assert.equal(m.clockRunning,false);assert.equal(canEnter('snug',reload(m)),true);
   clockAction(m,'key');assert.equal(m.clockKey,'clock');assert.equal(clockAction(m,'clock').reveal,undefined);

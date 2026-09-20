@@ -43,9 +43,17 @@ button:focus-visible{outline:2px solid #f5dca6;outline-offset:4px}
 .idle{cursor:none}
 .idle #back,.idle #toolbar,.idle #actions{opacity:0;pointer-events:none}
 .idle .spot span,.idle .spot::after,.idle .spot.edge b{opacity:0}
-#scope-mask{position:fixed;inset:0;pointer-events:none;z-index:7;background:radial-gradient(circle at center,transparent 0 29vmin,#100d08dd 31vmin,#070605 33vmin)}
-#scene[data-view=telescope]{filter:blur(1.3px);transition:transform 1.2s,filter 1.4s}
-#scene[data-view=telescope].scope-sharp{filter:blur(0)}
+#scope-mask{position:fixed;inset:0;pointer-events:none;z-index:7;background:radial-gradient(circle at center,transparent 0 39vmin,#100d08dd 40.5vmin,#070605 42vmin)}
+#telescope{position:fixed;z-index:8;left:50%;top:50%;transform:translate(-50%,-50%);width:82vmin;height:82vmin;border-radius:50%;overflow:hidden;touch-action:none;cursor:grab;background:#08121f;box-shadow:0 0 0 2px #6c573b32,0 0 0 8px #17130f,0 0 0 10px #43372555,0 0 60px #000;user-select:none}
+#telescope.dragging{cursor:grabbing}
+#telescope canvas{width:100%;height:100%;display:block;transition:filter 1s}
+#telescope.soft-focus canvas{filter:blur(1.5px)}
+.lens-glass{position:absolute;inset:0;pointer-events:none;border-radius:50%;box-shadow:inset 0 0 20px 8px #01050bbb,inset 2px 1px 4px #b5cddd33;background:radial-gradient(circle,transparent 50%,#07102020 76%,#0009 100%)}
+#stage[data-view=telescope] #world{visibility:hidden}
+#stage[data-view=telescope] #actions{bottom:max(18px,env(safe-area-inset-bottom));}
+#stage[data-view=telescope] #caption{bottom:76px}
+@media(max-width:600px){#stage[data-view=telescope] #toolbar{top:auto;bottom:max(16px,env(safe-area-inset-bottom));right:12px}#stage[data-view=telescope] #toolbar #lights,#stage[data-view=telescope] #toolbar #fullscreen{display:none}#stage[data-view=telescope] #actions{left:12px;transform:none;max-width:65vw}#stage[data-view=telescope] #caption{bottom:80px}}
+@media(prefers-reduced-motion:reduce){#telescope canvas{transition:none}}
 #warmth{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,#25160d70);opacity:0;z-index:6;transition:opacity 2s}
 .wrapped #warmth{opacity:1}
 #far-light{position:absolute;width:.35%;height:.5%;border-radius:50%;background:#ffe1a6;box-shadow:0 0 8px 3px #ffce895c;opacity:0;z-index:4;pointer-events:none}

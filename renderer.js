@@ -1,5 +1,5 @@
-import { fireWarmth, teaWarmth } from './rhythms.js?v=65';
-import { art, scenes } from './world.js?v=65';
+import { fireWarmth, teaWarmth } from './rhythms.js?v=66';
+import { art, scenes } from './world.js?v=66';
 export class CabinRenderer {
   constructor(scene,weather) {
     this.scene=scene;this.canvas=weather;this.ctx=weather.getContext('2d');
@@ -81,7 +81,6 @@ export class CabinRenderer {
     light.hidden=!point;
     if(point){light.style.left=point[0]+'%';light.style.top=point[1]+'%';light.classList.toggle('answering',visit.elapsed<visit.signalUntil)}
     this.scene.classList.toggle('bird-visit',visit.elapsed<visit.birdUntil);
-    this.scene.classList.toggle('scope-sharp',memory.scopeSharp===true);
   }
   async reveal(){
     if(this.motion.matches)return;
