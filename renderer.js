@@ -82,18 +82,23 @@ export class CabinRenderer {
     if(point){light.style.left=point[0]+'%';light.style.top=point[1]+'%';light.classList.toggle('answering',visit.elapsed<visit.signalUntil)}
     this.scene.classList.toggle('bird-visit',visit.elapsed<visit.birdUntil);
   }
-  async reveal(){
+  async panel(open=true){
     if(this.motion.matches)return;
     const leaf=this.layers.get('clockWall')?.querySelector('.door-leaf');if(!leaf)return;
+    this.revealAnimation?.cancel();
     this.scene.classList.add('revealing');
-    this.revealAnimation=leaf.animate([
+    const openFrames=[
       {transform:'perspective(900px) rotateY(0deg)',opacity:1,offset:0},
       {transform:'perspective(900px) rotateY(0deg)',opacity:1,offset:.2},
       {transform:'perspective(900px) rotateY(-78deg)',opacity:1,offset:.88},
       {transform:'perspective(900px) rotateY(-82deg)',opacity:0,offset:1}
-    ],{duration:3200,easing:'cubic-bezier(.35,0,.25,1)',fill:'forwards'});
+    ];
+    const frames=open?openFrames:[...openFrames].reverse().map(frame=>({...frame,offset:1-frame.offset}));
+    this.revealAnimation=leaf.animate(frames,{duration:3200,easing:'cubic-bezier(.35,0,.25,1)',fill:'forwards'});
     try{await this.revealAnimation.finished}catch{}finally{this.scene.classList.remove('revealing')}
   }
+  reveal(){return this.panel(true)}
+  conceal(){return this.panel(false)}
   ring(id){this.ringUntil=performance.now()+2400;this.ringColor=id==='toneLow'?'244,170,80':id==='toneMiddle'?'157,196,182':'178,190,241';}
   drawLantern(now,memory){
     if(now-this.lastLantern<80)return;this.lastLantern=now;
