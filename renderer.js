@@ -95,8 +95,13 @@ export class CabinRenderer {
     ];
     const frames=open?openFrames:[...openFrames].reverse().map(frame=>({...frame,offset:1-frame.offset}));
     this.revealAnimation=leaf.animate(frames,{duration:3200,easing:'cubic-bezier(.35,0,.25,1)',fill:'forwards'});
-    try{await this.revealAnimation.finished}catch{}finally{this.scene.classList.remove('revealing')}
+    try{await this.revealAnimation.finished}catch{}finally{
+      // Keep the animated leaf covering the base plate until the authored
+      // open/closed state art has actually been applied. The caller finishes
+      // the handoff after refreshing state, preventing a one-frame flash.
+    }
   }
+  finishPanel(){this.scene.classList.remove('revealing');this.revealAnimation?.cancel();this.revealAnimation=null}
   reveal(){return this.panel(true)}
   conceal(){return this.panel(false)}
   ring(id){this.ringUntil=performance.now()+2400;this.ringColor=id==='toneLow'?'244,170,80':id==='toneMiddle'?'157,196,182':'178,190,241';}
