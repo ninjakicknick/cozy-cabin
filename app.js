@@ -12,7 +12,7 @@ const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchPar
 const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
 const visit=createVisit(Date.now()^memory.visits,memory);
 if(memory.recordOn&&!memory.life.recordAt)memory.life.recordAt=Date.now();
-const arrival=memory.life.lastRest&&canEnter(memory.life.lastRest,memory)&&Date.now()-memory.life.lastSeen<20*60000?memory.life.lastRest:'room';
+const arrival='room';
 const state={view:'room',selected:null,input:'pointer',idle:false,page:memory.page,modal:null,loading:false,actionIndex:0,openingMenu:false};
 const renderer=new CabinRenderer(scene,$('#weather'));
 const telescope=new Telescope($('#telescope'),memory,()=>wake(),()=>save(true));
