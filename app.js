@@ -12,7 +12,7 @@ const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
 const visit=createVisit(Date.now()^memory.visits,memory);
 if(memory.recordOn&&!memory.life.recordAt)memory.life.recordAt=Date.now();
 const arrival=memory.life.lastRest&&canEnter(memory.life.lastRest,memory)&&Date.now()-memory.life.lastSeen<20*60000?memory.life.lastRest:'room';
-const state={view:'room',selected:null,input:'pointer',idle:false,page:memory.page,modal:null,loading:false,actionIndex:0};
+const state={view:'room',selected:null,input:'pointer',idle:false,page:memory.page,modal:null,loading:false,actionIndex:0,openingMenu:false};
 const renderer=new CabinRenderer(scene,$('#weather'));
 const audio=new CabinAudio(ok=>{stage.dataset.audio=ok?'ready':'retry';$('#sound').title=ok?'Sound · M':'Sound could not start. Tap to retry.'});
 let idleTimer,captionTimer,lastFrame=performance.now(),lastTick=0,petUntil=0,goToken=0,controller={},lastSaveAt=0;
@@ -25,7 +25,7 @@ function updateSelected(){
   for(const button of hotspots.querySelectorAll('button'))button.classList.toggle('selected',state.input!=='pointer'&&button.dataset.id===state.selected);
   for(const [i,button] of [...actions.children].entries())button.classList.toggle('selected',state.input!=='pointer'&&(scenes[state.view].spots?state.selected===`action:${button.dataset.action}`:i===state.actionIndex));
 }
-function availableActions(){const spec=scenes[state.view];return [...(spec.actions||[]),...(spec.rest&&teaWarmth(memory)>0?['sip']:[])]}
+function availableActions(){const spec=scenes[state.view];return [...(spec.actions||[]),...(state.view==='clockWall'&&state.openingMenu&&memory.panelOpen?['enterSecret','closePanel']:[]),...(spec.rest&&teaWarmth(memory)>0?['sip']:[])]}
 function renderControls(){
   state.actionIndex=Math.min(state.actionIndex,Math.max(0,availableActions().length-1));
   const spec=scenes[state.view];if(spec.spots&&!navigationPoints(state.view,availableActions(),memory)[state.selected])state.selected=spec.default;hotspots.replaceChildren();actions.replaceChildren();
@@ -56,7 +56,7 @@ async function go(view){
   if(!scenes[view]||!canEnter(view,memory))return;const token=++goToken;state.loading=true;stage.setAttribute('aria-busy','true');wake();
   try{
     if(!await renderer.show(view)||token!==goToken)return;
-    const previous=state.view;state.view=view;state.actionIndex=0;state.selected=scenes[view].default||null;visit.still=0;
+    const previous=state.view;state.view=view;state.actionIndex=0;state.openingMenu=false;state.selected=scenes[view].default||null;visit.still=0;
     if(previous!==view)audio.sound(['porch','mudroom','snug'].includes(view)?'wood':'step');
     closeModal(false);say('');stage.dataset.view=view;stage.setAttribute('aria-label',scenes[view].label);
     $('#scope-mask').hidden=!scenes[view].scope;
@@ -106,7 +106,11 @@ async function perform(id){
       }else{renderControls();refresh()}
       return;
     }
-    case 'panel':memory.panelOpen=!memory.panelOpen;audio.sound('wood');say(memory.panelOpen?'The hidden panel swings inward.':'The panel settles flush with the wall.');break;
+    case 'opening':
+      if(!memory.panelOpen){memory.panelOpen=true;audio.sound('wood');say('The hidden panel swings inward.');break}
+      state.openingMenu=true;state.selected='action:enterSecret';renderControls();return;
+    case 'enterSecret':state.openingMenu=false;go('snug');return;
+    case 'closePanel':memory.panelOpen=false;state.openingMenu=false;audio.sound('wood');say('The panel settles flush with the wall.');break;
     case 'lantern':memory.lanternTurning=!memory.lanternTurning;audio.sound('winding');break;
     case 'toneLow':case 'toneMiddle':case 'toneHigh':audio.sound(id,false);renderer.ring(id);break;
     case 'book':state.modal='book';renderPage();book.showModal();$('#next-page').focus();audio.sound('page');break;
