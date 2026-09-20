@@ -106,6 +106,7 @@ async function perform(id){
       }else{renderControls();refresh()}
       return;
     }
+    case 'panel':memory.panelOpen=!memory.panelOpen;audio.sound('wood');say(memory.panelOpen?'The hidden panel swings inward.':'The panel settles flush with the wall.');break;
     case 'lantern':memory.lanternTurning=!memory.lanternTurning;audio.sound('winding');break;
     case 'toneLow':case 'toneMiddle':case 'toneHigh':audio.sound(id,false);renderer.ring(id);break;
     case 'book':state.modal='book';renderPage();book.showModal();$('#next-page').focus();audio.sound('page');break;
