@@ -54,13 +54,13 @@ export const scenes = {
     spot('tin','Open the biscuit tin',28,68,'tin','do'),spot('boat','The small wooden boat',35,55,'boat','do'),
     spot('cushion','Settle on the cushion',64,65,'cushion','go',{w:24,h:20}),spot('picture','Look at the pinned photograph',80,34,'photograph','do'),
     spot('out','Back into the loft',93,90,'loft','go',{edge:true})]},
-  clockWall:{art:'clockWall',label:'Beside the old clock',parent:'books',default:'clock',spots:[spot('clock','The old clock',49.7,30,'clock','do',{w:14,h:40}),spot('passage','Step through the opening',53,61,'snug','go',{when:'secretOpen',w:20,h:38})]},
+  clockWall:{art:'clockWall',label:'Beside the old clock',parent:'books',default:'clock',spots:[spot('clock','The old clock',49.7,30,'clock','do',{w:14,h:40}),spot('passage','Step through the opening',53,61,'snug','go',{w:20,h:38}),spot('panel','The concealed panel',59,48,'panel','do',{w:13,h:55})]},
   snug:{art:'snug',label:'Behind the warm stone',parent:'clockWall',default:'rest',spots:[spot('rest','Lie on the bed',45,63,'snugRest','go',{w:43,h:37}),spot('lantern','The brass lantern',82,51,'lantern','do',{w:12,h:33}),spot('instrument','The little wooden instrument',90,70,'instrument'),spot('out','Back through the panel',7,92,'clockWall','go',{edge:true})]},
   snugRest:{art:'snugBed',label:'Lying beneath the glass roof',parent:'snug',rest:true,actions:['lantern','listen']},
   instrument:{art:'snug',label:'At the little instrument',parent:'snug',zoom:[1.65,78,61],actions:['toneLow','toneMiddle','toneHigh']},
   cushion:{art:'eaves',label:'In the quiet under the roof',parent:'eaves',zoom:[1.25,54,38],rest:true,actions:['musicbox']},
 };
-export function visibleSpots(view,memory={}){return (scenes[view].spots||[]).filter(s=>!s.when||memory[s.when]).map(s=>s.id==='key'&&memory.clockKey&&memory.clockKey!=='hook'?{...s,label:'The empty hook'}:s.id==='clock'&&memory.secretOpen?{...s,x:41.5,y:30,w:9}:s);}
+export function visibleSpots(view,memory={}){return (scenes[view].spots||[]).filter(s=>{if(s.when&&!memory[s.when])return false;if(s.id==='passage')return memory.secretOpen&&memory.panelOpen;if(s.id==='panel')return memory.secretOpen;return true}).map(s=>s.id==='key'&&memory.clockKey&&memory.clockKey!=='hook'?{...s,label:'The empty hook'}:s.id==='clock'&&memory.secretOpen?{...s,x:41.5,y:30,w:9}:s.id==='panel'?{...s,label:memory.panelOpen?'Close the concealed panel':'Open the concealed panel'}:s);}
 export function baseArt(view){ return scenes[view]?.art || 'room'; }
 export function actionLabel(id,m,now=Date.now()) {
   if(id==='clock')return clockLabel(m);

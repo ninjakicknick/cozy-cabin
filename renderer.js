@@ -57,7 +57,7 @@ export class CabinRenderer {
     this.weather=weather;const base=scenes[this.view].art;
     this.scene.classList.toggle('key-away',memory.clockKey!=='hook');
     this.scene.classList.toggle('key-fitted',memory.clockKey==='clock');
-    this.scene.classList.toggle('secret-open',memory.secretOpen);
+    this.scene.classList.toggle('secret-open',memory.secretOpen&&memory.panelOpen);
     this.scene.classList.toggle('clock-running',memory.clockRunning);
     this.scene.classList.toggle('lantern-turning',memory.lanternTurning);
     this.scene.classList.toggle('lights-out',memory.lightsOn===false);
