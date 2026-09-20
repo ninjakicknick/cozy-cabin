@@ -24,5 +24,25 @@
   </article></dialog>
   <dialog id="paper" aria-labelledby="paper-title"><article class="paper-sheet"><button id="close-paper" aria-label="Put it back">×</button><h1 id="paper-title"></h1><p id="paper-text"></p><p id="paper-footer"></p><button id="paper-turn" hidden>Turn it over</button></article></dialog>
 </main>
-<script type="module" src="app.js?v=66"></script>\n<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));</script>
+<script type="module" src="app.js?v=66"></script>
+<script>
+if('serviceWorker' in navigator){
+  const wasControlled=Boolean(navigator.serviceWorker.controller);
+  let refreshing=false;
+  addEventListener('load',async()=>{
+    try{
+      const registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+      await registration.update();
+      document.addEventListener('visibilitychange',()=>{
+        if(document.visibilityState==='visible')registration.update().catch(()=>{});
+      });
+    }catch{}
+  });
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!wasControlled||refreshing)return;
+    refreshing=true;
+    location.reload();
+  });
+}
+</script>
 </body></html>
