@@ -1,7 +1,7 @@
 // One small physical puzzle. The notebook is a clue, never a prerequisite.
 export function readClock(raw={}) {
   const opened=raw.secretOpen===true;
-  return {secretOpen:opened,clockKey:opened?'clock':['pocket','clock'].includes(raw.clockKey)?raw.clockKey:'hook',
+  return {secretOpen:opened,panelOpen:opened&&raw.panelOpen!==false,clockKey:opened?'clock':['pocket','clock'].includes(raw.clockKey)?raw.clockKey:'hook',
     clockRunning:opened&&raw.clockRunning!==false,lanternTurning:raw.lanternTurning===true};
 }
 export function clockAction(memory,action) {
@@ -13,7 +13,7 @@ export function clockAction(memory,action) {
   if(memory.secretOpen){memory.clockRunning=!memory.clockRunning;return {sound:'needle',text:memory.clockRunning?'A gentle nudge. It finds its rhythm again.':'You catch the pendulum lightly. The passage stays open.'};}
   if(memory.clockKey==='hook')return {text:'Still hands. Beneath them, a small square winding socket.'};
   if(memory.clockKey==='pocket'){memory.clockKey='clock';return {sound:'key',text:'It fits. The brass waits beneath your fingers.'};}
-  memory.secretOpen=true;memory.clockRunning=true;
+  memory.secretOpen=true;memory.panelOpen=true;memory.clockRunning=true;
   return {sound:'winding',reveal:true,text:''};
 }
 export function canEnter(view,memory){return !['snug','snugRest','instrument'].includes(view)||memory.secretOpen;}
