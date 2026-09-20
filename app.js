@@ -196,7 +196,10 @@ function frame(now){
     telescope.signal=visit.elapsed<visit.signalUntil;
     telescope.update(dt,now,state.loading||state.modal?null:pad);
     const result=gamepadCommands(pad,controller,now);controller=result.state;
-    if(result.commands.length){state.input='gamepad';wake();audio.wake();for(const id of result.commands)command(id);updateSelected()}
+    // The telescope consumes continuous stick/D-pad movement itself. Do not also
+    // turn those inputs into cabin navigation commands while looking through it.
+    const commands=state.view==='telescope'?result.commands.filter(id=>!['left','right','up','down'].includes(id)):result.commands;
+    if(commands.length){state.input='gamepad';wake();audio.wake();for(const id of commands)command(id);updateSelected()}
   }
   requestAnimationFrame(frame);
 }
