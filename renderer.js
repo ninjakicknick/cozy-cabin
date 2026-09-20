@@ -90,8 +90,8 @@ export class CabinRenderer {
     const openFrames=[
       {transform:'perspective(900px) rotateY(0deg)',opacity:1,offset:0},
       {transform:'perspective(900px) rotateY(0deg)',opacity:1,offset:.2},
-      {transform:'perspective(900px) rotateY(-78deg)',opacity:1,offset:.88},
-      {transform:'perspective(900px) rotateY(-82deg)',opacity:0,offset:1}
+      {transform:'perspective(900px) rotateY(78deg)',opacity:1,offset:.88},
+      {transform:'perspective(900px) rotateY(82deg)',opacity:0,offset:1}
     ];
     const frames=open?openFrames:[...openFrames].reverse().map(frame=>({...frame,offset:1-frame.offset}));
     this.revealAnimation=leaf.animate(frames,{duration:3200,easing:'cubic-bezier(.35,0,.25,1)',fill:'forwards'});
