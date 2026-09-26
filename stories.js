@@ -5,6 +5,9 @@ export const notebook=[
  ['Inside the back cover','If you came here to get something done, I am afraid I have misplaced the clock key.\n\nStay anyway.'],
 ];
 export function paper(id,m){return ({
+ fold:{title:'A folded scrap',text:'The glass keeps what the room forgets.\n\nI could only read it after the lamps were out. The fire was enough.',footer:'One corner has been thoroughly chewed.'},
+ mitten:{title:'The other mitten',text:'Blue wool, damp at the cuff.\n\nIt is the same pattern as the one in the bench drawer.',footer:'There is a single pine needle inside.'},
+ compassNote:{title:'Beneath the brass',text:'Six pinpricks through the lining of the drawer.\n\nYou have seen their arrangement somewhere else.\n\nUnder the compass, in pencil: “The old landing. Further left than you think.”',footer:'You set the compass back into its worn hollow.'},
  recipe:{title:'For a cold evening',text:'Black tea. A little orange peel. Two cloves, never three.\n\nLet it sit while you find the other cup.\n\nBelow, in a different hand:\n“Still good without the cloves.”',footer:m.life?.teaDays>2?'The card opens at the same crease. A faint tea ring has joined the old one.':'A recipe card, softened at the corners.'},
  postcard:{title:'The other side',text:'We took the last boat before the snow. I have your scarf, and you have my good compass.\n\nKeep both, if you like. I know the way.\n\n— E.',footer:'The postmark has run into the mountain. Summer, 1978.'},
  bench:{title:'In the bench drawer',text:'A single wool mitten. A packet of seeds. A ferry timetable printed for a summer that has already passed.\n\nThe last crossing has been circled in blue pencil.\n\nUnder it: “They wait if they can see the porch light.”',footer:'Nothing here needs taking.'},

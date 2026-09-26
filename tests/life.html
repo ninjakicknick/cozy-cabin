@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><base href="../"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Isolated shoreline rehearsal</title><link rel="stylesheet" href="style.css?v=67"></head><body><div id="telescope" role="img" aria-label="Isolated telescope rehearsal"><canvas></canvas><div class="lens-glass"></div></div><script type="module">
+import {Telescope} from './telescope.js?v=67';import {readMemory} from './state.js?v=67';import {shoreLifeAt} from './shore-life.js?v=67';
+const memory=readMemory();memory.life.seed=3451;
+const scope=new Telescope(document.querySelector('#telescope'),memory,()=>{},()=>{});await scope.load();scope.active=true;
+window.rehearse=(track,kind)=>{const start=new Date(2026,8,26,20).getTime();for(let i=0;i<86400*35;i+=10){const now=start+i*1000,w=shoreLifeAt(now,memory.life.seed,memory);if(w[track].active&&w[track].kind===kind&&w[track].alpha>.95){const xy=track==='wildlife'?[kind==='deer'?1460:650,450]:track==='sky'?[860,300]:[1190,465];scope.position={x:xy[0],y:xy[1]};scope.target={...scope.position};scope.draw(now);return {now,actors:w.actors.length}}}throw Error('No interval found')};
+window.scope=scope;window.ready=true;window.rehearse('household','dance');
+</script></body></html>

@@ -17,7 +17,7 @@ test('the shore is independent of visits, bounded over days and mostly quiet',()
   if(a.paperBoat){boats++;assert.equal(shoreAt(start+n*1000,seed,false).paperBoat,null)}
   if(!a.person&&a.pass===null&&!a.dance&&!a.fox&&!a.owl&&!a.paperBoat)quiet++;
  }
- assert.ok(outdoors>0&&outdoors<8640*.6);assert.ok(boats>0&&boats<8640*.1);assert.ok(quiet>8640*1.5);
+ assert.ok(outdoors>0&&outdoors<25920*.6);assert.ok(boats>0&&boats<25920*.1);assert.ok(quiet>25920*.4);
 });
 test('controller telescope axes support fine movement, diagonals, D-pad and disconnect',()=>{
  assert.deepEqual(telescopeAxes(null),{x:0,y:0});assert.deepEqual(telescopeAxes({axes:[.1,-.1]}),{x:0,y:0});

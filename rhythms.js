@@ -50,7 +50,7 @@ export function rememberTea(memory,now=Date.now()) {
 // Physical adjacency, separate from image reuse (the telescope is upstairs).
 const zones={room:'hearth',chair:'hearth',floor:'hearth',fire:'hearth',books:'hearth',cat:'hearth',record:'hearth',window:'window',windowLake:'window',kitchen:'kitchen',drawer:'kitchen',mudroom:'threshold',porch:'porch',porchSeat:'porch',lake:'porch',loft:'loft',bed:'loft',telescope:'loft',eaves:'eaves',cushion:'eaves',clockWall:'clockWall',snug:'snug',snugRest:'snug',instrument:'snug'};
 const links={hearth:{window:.5,kitchen:1,clockWall:.6},window:{hearth:.5,porch:2.3},kitchen:{hearth:1,threshold:1,loft:1.4},threshold:{kitchen:1,porch:1.2},porch:{threshold:1.2,window:2.3},loft:{kitchen:1.4,eaves:.8},eaves:{loft:.8},clockWall:{hearth:.6,snug:.9},snug:{clockWall:.9}};
-export const soundOrigins={kettle:'kitchen',cup:'kitchen',chime:'porch',bird:'porch',owl:'porch',lakeBell:'porch',musicbox:'eaves',roof:'loft',wood:'hearth',purr:'hearth',needle:'hearth',key:'threshold',tick:'clockWall',winding:'clockWall',latch:'clockWall',toneLow:'snug',toneMiddle:'snug',toneHigh:'snug'};
+export const soundOrigins={lakeReply:'porch',kettle:'kitchen',cup:'kitchen',chime:'porch',bird:'porch',owl:'porch',lakeBell:'porch',musicbox:'eaves',roof:'loft',wood:'hearth',purr:'hearth',needle:'hearth',key:'threshold',tick:'clockWall',winding:'clockWall',latch:'clockWall',toneLow:'snug',toneMiddle:'snug',toneHigh:'snug'};
 export function propagation(view,origin,windowOpen=false) {
   const target=zones[view]||'hearth';if(!origin||target===origin)return {gain:1,cutoff:9000,pan:0};
   const distances=Object.fromEntries(Object.keys(links).map(id=>[id,Infinity]));distances[origin]=0;const done=new Set();

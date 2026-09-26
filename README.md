@@ -10,7 +10,7 @@ A small, persistent place to retreat into. Sit by the fire, turn toward the kitc
 - **Keyboard:** arrows / WASD select spatially; Enter / Space interacts; Escape / Backspace goes back. In views with multiple actions, left/right selects an action and X uses the second action. M toggles sound; F toggles fullscreen. Native Tab navigation remains available.
 - **Gamepad:** D-pad / left stick selects, A interacts, B returns, X uses the secondary action, Start toggles sound. In the book, left/right turns pages.
 
-Sound starts on the first gesture. A saved sound preference, object states and notebook page survive visits on this device. A brief interruption returns you to your last resting place; a later visit begins in the living room. Familiar places and small routines are remembered locally, without an account or a visible progress system. Blocked browser storage does not prevent entry.
+Sound starts on the first gesture. A saved sound preference, object states and notebook page survive visits on this device. Every visit begins in the living room. Familiar places and small routines are remembered locally, without an account or a visible progress system. Blocked browser storage does not prevent entry.
 
 ## Development
 
@@ -21,6 +21,7 @@ Static ES modules; no framework, no build, no runtime dependencies. Serve with `
 - `app.js`: shared interaction controller and accessible object readers.
 - `renderer.js`: lazy image loading, cancellable scene transitions, active-view video playback, masked weather.
 - `state.js`: validated local memory, navigation, active-visit timing and bounded ambient events.
+- `discoveries.js`, `shore-life.js`, `living-details.js`: quiet attention, independent world routines, private physical memory, and lightweight environmental rendering.
 - `rhythms.js`: persistent weather, local-time light, warmth, habitual memory and physical sound paths.
 - `input.js`: pure gamepad interpretation shared with tests.
 - `audio.js`: native seamless ambience, distance mixing and self-cleaning synthesized sound events.
