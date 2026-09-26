@@ -1,5 +1,5 @@
-import { propagation, soundOrigins, fireWarmth } from './rhythms.js?v=66';
-import { baseArt } from './world.js?v=66';
+import { propagation, soundOrigins, fireWarmth } from './rhythms.js?v=67';
+import { baseArt } from './world.js?v=67';
 // Loop seams are blended once in the decoded buffer. Native Web Audio looping
 // continues without animation frames, media events, or just-in-time JS timers.
 export function loopSamples(input, overlap) {
@@ -140,7 +140,7 @@ export class CabinAudio {
   }
   sound(kind,local=true) {
     if (!this.ctx || this.ctx.state !== 'running') return;
-    if (['chime','owl','bird','lakeBell','kettle','musicbox','cup','toneLow','toneMiddle','toneHigh'].includes(kind)) { this.melody(kind,local); return; }
+    if (['lakeReply','chime','owl','bird','lakeBell','kettle','musicbox','cup','toneLow','toneMiddle','toneHigh'].includes(kind)) { this.melody(kind,local); return; }
     const ctx = this.ctx, now = ctx.currentTime, voice=this.voice(kind,local);
     const duration = kind==='winding'?1.8:kind==='key'?.28:kind === 'purr' ? 2.1 : kind === 'wood' || kind === 'roof' ? .65 : .18;
     const gain = ctx.createGain(), filter = ctx.createBiquadFilter();
@@ -165,7 +165,7 @@ export class CabinAudio {
   melody(kind,local=true) {
     if (!this.ctx || this.ctx.state !== 'running') return;
     const ctx=this.ctx, now=ctx.currentTime,voice=this.voice(kind,local);
-    const patterns={toneLow:[261.63],toneMiddle:[329.63],toneHigh:[392],chime:[880,1174.66,1318.5],owl:[310,280],bird:[1700,2300,1900],lakeBell:[392,523.25],kettle:[980,1010],musicbox:[523.25,659.25,783.99,587.33,523.25],cup:[1800]};
+    const patterns={lakeReply:[329.63,261.63,392],toneLow:[261.63],toneMiddle:[329.63],toneHigh:[392],chime:[880,1174.66,1318.5],owl:[310,280],bird:[1700,2300,1900],lakeBell:[392,523.25],kettle:[980,1010],musicbox:[523.25,659.25,783.99,587.33,523.25],cup:[1800]};
     const notes=patterns[kind]||patterns.chime;
     let remaining=notes.length;
     notes.forEach((freq,index)=>{

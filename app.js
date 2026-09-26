@@ -1,38 +1,44 @@
-import { Telescope } from './telescope.js?v=66';
-import { clockAction, canEnter } from './clock.js?v=66';
-import { teaWarmth, rememberTea } from './rhythms.js?v=66';
-import { CabinAudio } from './audio.js?v=66';
-import { scenes,actionLabel,visibleSpots } from './world.js?v=66';
-import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=66';
-import { gamepadCommands } from './input.js?v=66';
-import { CabinRenderer } from './renderer.js?v=66';
-import { notebook,paper as paperContent } from './stories.js?v=66';
+import { LivingDetails } from './living-details.js?v=67';
+import { createAttention, disturb, advanceDiscovery, touchDiscovery, cabinAt, catAt } from './discoveries.js?v=67';
+import { shoreLifeAt } from './shore-life.js?v=67';
+import { Telescope } from './telescope.js?v=67';
+import { clockAction, canEnter } from './clock.js?v=67';
+import { teaWarmth, rememberTea } from './rhythms.js?v=67';
+import { CabinAudio } from './audio.js?v=67';
+import { scenes,actionLabel,visibleSpots } from './world.js?v=67';
+import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=67';
+import { gamepadCommands } from './input.js?v=67';
+import { CabinRenderer } from './renderer.js?v=67';
+import { notebook,paper as paperContent } from './stories.js?v=67';
 const $=s=>document.querySelector(s),stage=$('#stage'),scene=$('#scene'),hotspots=$('#hotspots'),actions=$('#actions');
 const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchParams(location.search).get('testVisit')==='clock'?{getItem:()=>sessionStorage.getItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default')),setItem:(_,v)=>sessionStorage.setItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default'),v)}:localStorage}catch{}
 const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
 const visit=createVisit(Date.now()^memory.visits,memory);
+Object.defineProperty(memory,'_catPlace',{value:catAt(Date.now(),memory.life.seed),writable:true,enumerable:false});
+const attention=createAttention();let discoveryTick=0,spotsSignature='';
 if(memory.recordOn&&!memory.life.recordAt)memory.life.recordAt=Date.now();
 const arrival='room';
 const state={view:'room',selected:null,input:'pointer',idle:false,page:memory.page,modal:null,loading:false,actionIndex:0,openingMenu:false};
 const renderer=new CabinRenderer(scene,$('#weather'));
+const details=new LivingDetails(scene);
 const telescope=new Telescope($('#telescope'),memory,()=>wake(),()=>save(true));
 const audio=new CabinAudio(ok=>{stage.dataset.audio=ok?'ready':'retry';$('#sound').title=ok?'Sound · M':'Sound could not start. Tap to retry.'});
 let idleTimer,captionTimer,lastFrame=performance.now(),lastTick=0,petUntil=0,goToken=0,controller={},lastSaveAt=0;
 let lastSaved=JSON.stringify(memory),currentWeather=weatherAt(Date.now(),memory.life.seed);
 function save(force=false){const now=Date.now();if(!force&&now-lastSaveAt<30000)return;memory.life.lastSeen=now;const next=JSON.stringify(memory);if(next!==lastSaved){saveMemory(storage,memory);lastSaved=next}lastSaveAt=now}
 function say(text,duration=4200){clearTimeout(captionTimer);$('#caption').textContent=text;$('#caption').classList.toggle('show',Boolean(text));captionTimer=setTimeout(()=>$('#caption').classList.remove('show'),duration)}
-function wake(){state.idle=false;stage.classList.remove('idle');clearTimeout(idleTimer);idleTimer=setTimeout(()=>{if(state.modal||state.loading)return;state.idle=true;stage.classList.add('idle')},4800)}
+function wake(){disturb(attention);state.idle=false;stage.classList.remove('idle');clearTimeout(idleTimer);idleTimer=setTimeout(()=>{if(state.modal||state.loading)return;state.idle=true;stage.classList.add('idle')},4800)}
 function syncAudio(){audio.mix(state.view,{...memory,weatherWind:currentWeather.wind,listening:visit.elapsed<visit.listeningUntil})}
 function updateSelected(){
   for(const button of hotspots.querySelectorAll('button'))button.classList.toggle('selected',state.input!=='pointer'&&button.dataset.id===state.selected);
   for(const [i,button] of [...actions.children].entries())button.classList.toggle('selected',state.input!=='pointer'&&(scenes[state.view].spots?state.selected===`action:${button.dataset.action}`:i===state.actionIndex));
 }
-function availableActions(){const spec=scenes[state.view];return [...(spec.actions||[]),...(state.view==='clockWall'&&state.openingMenu&&memory.panelOpen?['enterSecret','closePanel']:[]),...(spec.rest&&teaWarmth(memory)>0?['sip']:[])]}
+function availableActions(){const spec=scenes[state.view];return [...(spec.actions||[]).filter(id=>id!=='pet'||cabinAt(Date.now(),memory).cat==='room'),...(state.view==='clockWall'&&state.openingMenu&&memory.panelOpen?['enterSecret','closePanel']:[]),...(spec.rest&&teaWarmth(memory)>0?['sip']:[])]}
 function renderControls(){
   state.actionIndex=Math.min(state.actionIndex,Math.max(0,availableActions().length-1));
   const spec=scenes[state.view];if(spec.spots&&!navigationPoints(state.view,availableActions(),memory)[state.selected])state.selected=spec.default;hotspots.replaceChildren();actions.replaceChildren();
   for(const item of visibleSpots(state.view,memory)){
-    const button=document.createElement('button');button.className=`spot${item.edge?' edge':''}`;button.dataset.id=item.id;if(item.x>80)button.classList.add('label-left');if(item.x<15)button.classList.add('label-right');button.setAttribute('aria-label',item.label);
+    const button=document.createElement('button');button.className=`spot${item.edge?' edge':''}${item.unmarked?' unmarked':''}`;button.dataset.id=item.id;if(item.x>80)button.classList.add('label-left');if(item.x<15)button.classList.add('label-right');button.setAttribute('aria-label',item.label);
     button.style.cssText=`--x:${item.x}%;--y:${item.y}%;--w:${item.w||8}%;--h:${item.h||13}%;`;
     const label=document.createElement('span');label.textContent=item.label;button.append(label);
     if(item.edge){const mark=document.createElement('b');mark.textContent=item.id==='kitchen'&&state.view==='room'?'↶':'‹';mark.setAttribute('aria-hidden','true');button.append(mark)}
@@ -44,6 +50,7 @@ function renderControls(){
   $('#sound').textContent=memory.muted?'Sound off':'Sound on';$('#sound').setAttribute('aria-pressed',String(!memory.muted));updateSelected();
 }
 function refresh(){
+  const signature=visibleSpots(state.view,memory).map(s=>s.id+':'+s.x+':'+s.y).join('|');if(signature!==spotsSignature){spotsSignature=signature;renderControls()}
   $('#lights').textContent=memory.lightsOn?'Lights on':'Lights off';$('#lights').setAttribute('aria-label',memory.lightsOn?'Turn off the lights':'Turn on the lights');$('#lights').setAttribute('aria-pressed',String(memory.lightsOn));
   if(memory.kettleAt&&Date.now()-memory.kettleAt>600000)memory.kettleAt=0;
   if([...actions.children].map(b=>b.dataset.action).join(',')!==availableActions().join(','))renderControls();
@@ -60,7 +67,7 @@ async function go(view){
     if(view==='telescope')await telescope.load();
     if(token!==goToken||!await renderer.show(view)||token!==goToken)return;
     telescope.show(view==='telescope');
-    const previous=state.view;state.view=view;state.actionIndex=0;state.openingMenu=false;state.selected=scenes[view].default||null;visit.still=0;
+    const previous=state.view;memory._catPlace=catAt(Date.now(),memory.life.seed);state.view=view;state.actionIndex=0;state.openingMenu=false;state.selected=scenes[view].default||null;visit.still=0;
     if(previous!==view)audio.sound(['porch','mudroom','snug'].includes(view)?'wood':'step');
     closeModal(false);say('');stage.dataset.view=view;stage.setAttribute('aria-label',scenes[view].label);
     $('#scope-mask').hidden=!scenes[view].scope;
@@ -78,7 +85,7 @@ function back(){if(state.modal){closeModal();return}if(state.view!=='room')go(pa
 function renderPage(){
   const [title,text]=notebook[state.page];$('#page-title').textContent=title;$('#page-text').textContent=text;
   $('#page-number').textContent=String(state.page+1).padStart(2,'0');$('#previous-page').disabled=state.page===0;$('#next-page').disabled=state.page===notebook.length-1;
-  const note=memory.life.signalCount>=3?'Not an answer every night. But the same pause between the lights.':memory.signalSeen?'I left the light on again.':memory.listened?'There is no road on that side of the lake.':'';
+  const note=memory.discovery.foldRead?'Leave room after the last note.':memory.life.signalCount>=3?'Not an answer every night. But the same pause between the lights.':memory.signalSeen?'I left the light on again.':memory.listened?'There is no road on that side of the lake.':'';
   $('#margin-note').textContent=note;$('#margin-note').hidden=!(state.page===2&&note);memory.page=state.page;save(true);
 }
 function turnPage(dir){const next=Math.max(0,Math.min(notebook.length-1,state.page+dir));if(next===state.page)return;state.page=next;audio.sound('page');renderPage()}
@@ -99,6 +106,7 @@ function act(){
 async function perform(id){
   if(state.loading)return;
   wake();audio.wake();const now=Date.now();
+  touchDiscovery(attention,memory,id,now);
   switch(id){
     case 'clockView':go('clockWall');return;
     case 'key':case 'clock':{
@@ -123,7 +131,7 @@ async function perform(id){
     case 'closePanel':
       state.openingMenu=false;audio.sound('wood');say('The panel settles flush with the wall.');
       state.loading=true;stage.setAttribute('aria-busy','true');
-      try{await renderer.conceal();memory.panelOpen=false;refresh()}finally{renderer.finishPanel(true);state.loading=false;stage.removeAttribute('aria-busy');wake()}
+      try{await renderer.conceal();memory.panelOpen=false;refresh()}finally{renderer.finishPanel(false);state.loading=false;stage.removeAttribute('aria-busy');wake()}
       break;
     case 'lantern':memory.lanternTurning=!memory.lanternTurning;audio.sound('winding');break;
     case 'toneLow':case 'toneMiddle':case 'toneHigh':audio.sound(id,false);renderer.ring(id);break;
@@ -133,7 +141,7 @@ async function perform(id){
     case 'record':memory.recordOn=!memory.recordOn;if(memory.recordOn)memory.life.recordAt=now;audio.sound('needle');say(memory.recordOn?(memory.recordSide?'Before the road.':'The long way home.'):'The needle comes to rest.');break;
     case 'flip':memory.recordSide=1-memory.recordSide;memory.life.recordAt=now;audio.sound('page');say(memory.recordSide?'On the other side, a name in blue pencil.':'The plain label faces up again.');break;
     case 'tend':if(memory.emberUntil>now){say('It has everything it needs.');break}memory.emberUntil=now+20*60e3;audio.sound('wood');say('The new wood catches slowly.');break;
-    case 'pet':if(now<petUntil)return;petUntil=now+2400;memory.catPets++;audio.sound('purr');say(memory.catPets%3===0?'A tiny chirp. Then an ear turns toward the kitchen.':['A paw uncurls. Then a purr.','You may stay.'][memory.catPets%2]);break;
+    case 'pet':if(cabinAt(now,memory).cat==='away')return;if(now<petUntil)return;petUntil=now+2400;memory.catPets++;audio.sound('purr');say(memory.catPets%3===0?'A tiny chirp. Then an ear turns toward the kitchen.':['A paw uncurls. Then a purr.','You may stay.'][memory.catPets%2]);break;
     case 'kettle':{
       const status=kettleState(memory,now);if(status==='ready'){perform('tea');return}
       if(status==='warming'){say('A faint trembling beneath the lid.');break}
@@ -148,13 +156,15 @@ async function perform(id){
     case 'chime':audio.sound('chime',false);scene.classList.remove('chime-touched');void scene.offsetWidth;scene.classList.add('chime-touched');break;
     case 'bowl':memory.birdAt=now;memory.life.fedAt=now;audio.sound('page');say('A few seeds beneath the snow.');break;
     case 'scope':memory.telescope.sharp=!memory.telescope.sharp;audio.sound('needle');break;
-    case 'compass':audio.sound('needle');say(memory.postcardRead?'The needle settles toward the lake. It takes its time.':'The brass is warm. The needle is in no hurry.');break;
+    case 'compass':if(memory.discovery.skyRemembered&&memory.postcardRead){memory.discovery.compassAligned=true;openPaper('compassNote');break}audio.sound('needle');say(memory.postcardRead?'The needle settles toward the lake. It takes its time.':'The brass is warm. The needle is in no hurry.');break;
     case 'scarf':memory.scarfTouches++;if(memory.scarfTouches>=3)openPaper('scarf');else{audio.sound('page');say(memory.scarfTouches===1?'The wool smells faintly of cedar.':'A loose stitch catches against your thumb.')}break;
     case 'postcard':memory.postcardRead=true;openPaper(id);break;
     case 'letter':memory.letterRead=true;openPaper(id);break;
     case 'tin':memory.tinVisits++;openPaper(id);break;
     case 'musicbox':memory.musicbox=!memory.musicbox;visit.musicUntil=visit.elapsed+20;visit.nextMusic=visit.elapsed+6;if(memory.musicbox)audio.sound('musicbox',false);else audio.sound('needle');break;
     case 'boat':memory.boatMoved=!memory.boatMoved;audio.sound('wood');say(memory.boatMoved?'You turn the little bow toward the window.':'It fits the old mark in the dust.');break;
+    case 'fold':memory.discovery.foldRead=true;openPaper(id);break;
+    case 'mitten':openPaper(id);break;
     case 'recipe':case 'bench':case 'photograph':openPaper(id);break;
   }
   refresh();save(true);audio.wake();
@@ -191,7 +201,7 @@ addEventListener('keydown',event=>{
   else if(key==='f'){if(!event.repeat)fullscreen()}
   else if(key==='enter'||key===' '){if(event.target instanceof HTMLButtonElement&&!event.target.hidden)return;event.preventDefault();if(!event.repeat)act()}
 });
-addEventListener('visibilitychange',()=>{lastFrame=performance.now();if(document.hidden)save(true);else{currentWeather=weatherAt(Date.now(),memory.life.seed);refresh()}});
+addEventListener('visibilitychange',()=>{disturb(attention);discoveryTick=0;lastFrame=performance.now();if(document.hidden)save(true);else{currentWeather=weatherAt(Date.now(),memory.life.seed);refresh()}});
 addEventListener('pagehide',()=>save(true));
 addEventListener('fullscreenchange',()=>{$('#fullscreen').textContent=document.fullscreenElement?'Leave fullscreen':'Fullscreen'});
 function frame(now){
@@ -200,6 +210,15 @@ function frame(now){
     const events=advanceWorld(visit,memory,state.view,dt,Date.now(),!state.modal&&!state.loading);
     for(const event of events){if(typeof event==='string')audio.sound(event,false);else if(!state.modal&&!$('#caption').classList.contains('show'))say(event.text,5500)}
     if(now-lastTick>1000){lastTick=now;currentWeather=weatherAt(Date.now(),memory.life.seed);refresh()}
+    const wall=Date.now();
+    if(now-discoveryTick>=1000){
+      const delta=discoveryTick?Math.min((now-discoveryTick)/1000,1.5):0;discoveryTick=now;
+      for(const sound of advanceDiscovery(attention,memory,state.view,delta,wall,!state.modal&&!state.loading))audio.sound(sound,false);
+      // A lake sound and its distant source share one wall-time interval.
+      const shore=shoreLifeAt(wall,memory.life.seed,memory);
+      if(shore.outdoor.active&&shore.outdoor.kind==='lantern'&&wall-memory.discovery.lastBell>1800000){memory.discovery.lastBell=wall;audio.sound('lakeBell',false);save(true)}
+    }
+    details.draw(wall,state.view,memory,attention);
     renderer.drawSnow(now);renderer.drawLantern(now,memory);
     let pad;try{pad=[...(navigator.getGamepads?.()||[])].find(p=>p?.connected)}catch{}
     telescope.signal=visit.elapsed<visit.signalUntil;

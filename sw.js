@@ -1,5 +1,5 @@
-const CACHE='cozy-cabin-shell-v2';
-const SHELL=['./','./index.html','./style.css?v=66','./app.js?v=66','./manifest.webmanifest','./assets/pwa-icon.svg'];
+const CACHE='cozy-cabin-shell-v67';
+const SHELL=['./','./index.html','./style.css?v=67','./app.js?v=67','./manifest.webmanifest','./assets/pwa-icon.svg'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(

@@ -1,4 +1,5 @@
-import { clockLabel } from './clock.js?v=66';
+import { cabinAt } from './discoveries.js?v=67';
+import { clockLabel } from './clock.js?v=67';
 // Scene coordinates are percentages in the original artwork, independent of screen size.
 // A scene owns its exits and objects; input devices all use the same definitions.
 const spot = (id, label, x, y, target, kind = 'go', extra = {}) => ({id,label,x,y,[kind]:target,...extra});
@@ -60,7 +61,15 @@ export const scenes = {
   instrument:{art:'snug',label:'At the little instrument',parent:'snug',zoom:[1.65,78,61],actions:['toneLow','toneMiddle','toneHigh']},
   cushion:{art:'eaves',label:'In the quiet under the roof',parent:'eaves',zoom:[1.25,54,38],rest:true,actions:['musicbox']},
 };
-export function visibleSpots(view,memory={}){return (scenes[view].spots||[]).filter(s=>{if(s.when&&!memory[s.when])return false;if(s.id==='passage')return memory.secretOpen;return true}).map(s=>s.id==='key'&&memory.clockKey&&memory.clockKey!=='hook'?{...s,label:'The empty hook'}:s.id==='clock'&&memory.secretOpen?{...s,x:41.5,y:30,w:9}:s.id==='passage'?{...s,label:memory.panelOpen?'The concealed opening':'The concealed panel'}:s);}
+export function visibleSpots(view,memory={}){
+ const c=memory.discovery?cabinAt(Date.now(),memory):null,extra=[];
+ if(c){
+  const places={kitchen:[37,80],loft:[25,51],eaves:[62,67]};
+  if(c.cat===view&&places[view]){const [x,y]=places[view];extra.push(spot('roamingCat','The cat',x,y,'pet','do',{unmarked:true,w:13,h:20}))}
+  if(view==='eaves'&&c.fold)extra.push(spot('fold','The folded paper',74.7,71,'fold','do',{unmarked:true}));
+  if(view==='mudroom'&&c.parcel)extra.push(spot('mitten','The blue mitten',37.2,72,'mitten','do',{unmarked:true}));
+ }
+ return [...(scenes[view].spots||[]),...extra].filter(s=>{if(s.id==='cat'&&c&&c.cat!=='room')return false;if(s.when&&!memory[s.when])return false;if(s.id==='passage')return memory.secretOpen;return true}).map(s=>s.id==='key'&&memory.clockKey&&memory.clockKey!=='hook'?{...s,label:'The empty hook'}:s.id==='clock'&&memory.secretOpen?{...s,x:41.5,y:30,w:9}:s.id==='passage'?{...s,label:memory.panelOpen?'The concealed opening':'The concealed panel'}:s);}
 export function baseArt(view){ return scenes[view]?.art || 'room'; }
 export function actionLabel(id,m,now=Date.now()) {
   if(id==='clock')return clockLabel(m);

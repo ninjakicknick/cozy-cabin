@@ -157,3 +157,8 @@ dialog button:disabled{opacity:.22;cursor:default}
 .lights-out .scene-layer[data-art=drawer]>img{filter:brightness(.38) saturate(.6)}
 .eaves-dark .scene-layer[data-art=eaves]>img{filter:brightness(.38) saturate(.6)}
 @media(max-width:380px){#toolbar .quiet-control{padding:8px;font-size:12px}#toolbar{gap:3px}}
+/* Physical changes share the scene transform; none advertises itself in the UI. */
+#living-details{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none}
+.empty-sofa{transition:filter 1.2s ease;position:absolute;left:77%;top:69%;width:22%;height:19%;z-index:2;pointer-events:none;mask-image:radial-gradient(ellipse 54.55% 63.16% at 50% 47.37%,#000 73%,transparent 100%)}
+.lights-out .empty-sofa{filter:brightness(.18) saturate(.7)}
+.spot.unmarked::after{display:none}

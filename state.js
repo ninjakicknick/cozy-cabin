@@ -1,8 +1,9 @@
-import { readTelescope } from './telescope-world.js?v=66';
-import { readClock } from './clock.js?v=66';
-import { readLife, weatherAt, restingPlaces, restTrace, localDay } from './rhythms.js?v=66';
+import { readDiscoveries, catAt } from './discoveries.js?v=67';
+import { readTelescope } from './telescope-world.js?v=67';
+import { readClock } from './clock.js?v=67';
+import { readLife, weatherAt, restingPlaces, restTrace, localDay } from './rhythms.js?v=67';
 export { weatherAt };
-import { scenes,visibleSpots } from './world.js?v=66';
+import { scenes,visibleSpots } from './world.js?v=67';
 export const STORAGE_KEY = 'cozy-cabin.memory.v1';
 const integer=(value,min,max,fallback=0)=>Number.isInteger(value)?Math.max(min,Math.min(max,value)):fallback;
 export function readMemory(storage,now=Date.now()) {
@@ -10,7 +11,7 @@ export function readMemory(storage,now=Date.now()) {
   const time=(value,maxAge,maxFuture=0)=>Number.isFinite(value)&&value>=now-maxAge&&value<=now+maxFuture?value:0;
   const life=readLife(raw.life,now);
   return {
-    ...readClock(raw),telescope:readTelescope(raw.telescope),lightsOn:raw.lightsOn!==false,
+    discovery:readDiscoveries(raw.discovery,now),...readClock(raw),telescope:readTelescope(raw.telescope),lightsOn:raw.lightsOn!==false,
     windowOpen:raw.windowOpen===true,recordOn:raw.recordOn===true&&(!life.recordAt||now-life.recordAt<192000),page:integer(raw.page,0,3),
     emberUntil:Number.isFinite(raw.emberUntil)?Math.min(raw.emberUntil,now+20*60e3):0,
     listened:raw.listened===true,muted:raw.muted===true,recordSide:integer(raw.recordSide,0,1),
@@ -83,7 +84,7 @@ export function advanceWorld(visit,memory,view,seconds,now=Date.now(),occupied=t
  if(outside&&visit.still>12&&(justFed||regular)){
   visit.birdUntil=visit.elapsed+7;memory.birdAt=0;life.birdDay=localDay(now);events.push('bird');
  }
- if(['chair','floor'].includes(view)&&visit.still>70&&visit.elapsed>visit.nextCat){
+ if((memory._catPlace||catAt(now,life.seed))==='room'&&['chair','floor'].includes(view)&&visit.still>70&&visit.elapsed>visit.nextCat){
   visit.catUntil=visit.elapsed+28;visit.nextCat=visit.elapsed+480;events.push('purr');
  }
  if(visit.elapsed>visit.nextGust){

@@ -1,4 +1,6 @@
-import {SHORE,aim,clamp,shoreAt,telescopeAxes} from './telescope-world.js?v=66';
+import {shoreLifeAt} from './shore-life.js?v=67';
+import {SHORE,aim,clamp,shoreAt,telescopeAxes} from './telescope-world.js?v=67';
+const lifeSprites=['carrying','sitting','waving','celebration','snowman','sled','deer','hare'];
 const spriteNames=['walking','standing','dancing','fox','owl','paper-boat'];
 export class Telescope {
  constructor(root,memory,onWake,onSave){
@@ -14,7 +16,7 @@ export class Telescope {
  clearInput(){if(this.drag&&this.root.hasPointerCapture(this.drag.id))this.root.releasePointerCapture(this.drag.id);this.drag=null;this.keys.clear();this.root.classList.remove('dragging')}
  async load(){
   if(this.loading)return this.loading;
-  this.loading=Promise.all(['shore',...spriteNames].map(async name=>{const img=new Image();img.src=`assets/telescope/${name}.webp`;await img.decode();this.images[name]=img})).catch(e=>{this.loading=null;throw e});return this.loading;
+  this.loading=Promise.all(['shore',...spriteNames,...lifeSprites].map(async name=>{const img=new Image();img.src=`assets/${lifeSprites.includes(name)?'life':'telescope'}/${name}.webp`;await img.decode();this.images[name]=img})).catch(e=>{this.loading=null;throw e});return this.loading;
  }
  show(active){this.active=active;this.root.hidden=!active;this.clearInput();if(active){this.lastDraw=0;this.draw(Date.now())}else this.remember()}
  remember(){Object.assign(this.memory.telescope,this.target);this.onSave()}
@@ -44,17 +46,38 @@ export class Telescope {
  }
  draw(now){
   if(!this.images.shore)return;const rect=this.root.getBoundingClientRect(),size=Math.round(rect.width*Math.min(devicePixelRatio||1,2));if(this.canvas.width!==size){this.canvas.width=size;this.canvas.height=size}
-  const c=this.c,scale=size/SHORE.field,world=shoreAt(now,this.memory.life.seed,this.memory.boatMoved),t=this.motion.matches?0:now/1000;
+  const c=this.c,scale=size/SHORE.field,world=shoreAt(now,this.memory.life.seed,this.memory.boatMoved),t=this.motion.matches?0:now/1000,life=shoreLifeAt(now,this.memory.life.seed,this.memory);
   c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,size,size);c.scale(scale,scale);c.translate(SHORE.field/2-this.position.x,SHORE.field/2-this.position.y);
   c.drawImage(this.images.shore,0,0,SHORE.width,SHORE.height);
   // Very restrained movement only on the water. No scene-wide wobble.
   if(!this.motion.matches){c.save();c.globalAlpha=.10;for(let y=628;y<887;y+=7){const offset=Math.sin(t*.55+y*.13)*1.1;c.drawImage(this.images.shore,0,y,1774,3,offset,y,1774,3)}c.restore()}
-  this.window(1044,416,50,43,world.light,world.curtain,world.pass!==null?{kind:'standing',x:1036+world.pass*69}:null);
-  this.window(1178,420,46,40,world.light,world.curtain,world.dance?{kind:'dancing',x:1200,rotation:Math.sin(t*1.8)*.10}:null);
-  this.window(1118,334,23,33,world.attic,0,null);
-  if(world.person)this.sprite(world.person.kind,world.person.x,world.person.y,63,{alpha:world.person.alpha,flip:world.person.flip,rotation:world.person.kind==='walking'?Math.sin(t*3)*.018:0});
-  if(world.fox)this.sprite('fox',world.fox.x,world.fox.y,31,{alpha:world.fox.alpha*.85});
-  if(world.owl)this.sprite('owl',1606,393,21,{alpha:.8});
+  const home=life.household,kind=home.active?home.kind:'',p=home.progress;
+  const curtain=kind==='curtains'?Math.sin(p*Math.PI):0;
+  const late=new Date(now).getHours()<6;
+  const light=kind==='lamp'?(.2+.8*Math.sin(p*Math.PI)):late?.32:.85;
+  let left=null,right=null;
+  if(kind==='pass')left={kind:'standing',x:1030+p*80};
+  if(kind==='reading'||kind==='supper')left={kind:'sitting',x:1069};
+  if(kind==='watching')left={kind:'standing',x:1068};
+  if(kind==='dance')right={kind:'dancing',x:1200,rotation:Math.sin(t*1.8)*.10};
+  if(kind==='wave')right={kind:'waving',x:1200};
+  this.window(1044,416,50,43,light,curtain,left);
+  this.window(1178,420,46,40,light,curtain,right);
+  this.window(1118,334,23,33,kind==='upstairs'?.95:.12,0,kind==='upstairs'?{kind:'standing',x:1129}:null);
+  for(const prop of life.props){
+   if(prop.kind==='glow'){c.save();c.fillStyle=`rgba(255,215,144,${prop.alpha})`;c.shadowColor='#ffd18d';c.shadowBlur=9;c.beginPath();c.arc(prop.x,prop.y,2,0,Math.PI*2);c.fill();c.restore()}
+   else this.sprite(prop.kind,prop.x,prop.y,39,{alpha:prop.alpha*.9});
+  }
+  for(const actor of life.actors)this.sprite(actor.sprite,actor.x,actor.y,actor.height,{...actor,rotation:actor.rotation||(actor.sprite==='walking'?Math.sin(t*(actor.fast?6:3))*.017:0)});
+  if(life.sky.active&&life.sky.kind==='aurora'){
+   c.save();c.globalAlpha=life.sky.alpha*.12;const glow=c.createLinearGradient(0,70,0,295);glow.addColorStop(0,'transparent');glow.addColorStop(.5,'#a0dfc3');glow.addColorStop(1,'transparent');c.fillStyle=glow;c.fillRect(0,70,1774,225);c.restore();
+  }
+  if(life.sky.active&&life.sky.kind==='meteor'){
+   const q=(life.sky.age%30000)/30000;if(q<.28){c.save();c.globalAlpha=Math.sin(q/.28*Math.PI)*life.sky.alpha*.7;c.strokeStyle='#e5eaf4';c.lineWidth=.8;c.beginPath();c.moveTo(460+q*850,160+q*200);c.lineTo(490+q*850,168+q*200);c.stroke();c.restore()}
+  }
+  // Only seeing a physical event through the lens remembers it, not merely
+  // having the telescope open pointed at another part of the landscape.
+  if(home.active&&kind==='carry'&&Math.hypot(this.position.x-1165,this.position.y-490)<220&&!this.memory.discovery.shoreSeenAt){this.memory.discovery.shoreSeenAt=now;this.onSave()}
   if(world.paperBoat)this.sprite('paper-boat',world.paperBoat.x,world.paperBoat.y+Math.sin(t)*1,28,{alpha:world.paperBoat.alpha*.8});
   // A quiet visual continuation of the cabin's existing light reply.
   if(this.signal){c.fillStyle=`rgba(255,214,137,${.2+.7*Math.pow(Math.sin(t*1.2),8)})`;c.beginPath();c.ellipse(251,451,3,5,0,0,Math.PI*2);c.fill()}

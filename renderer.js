@@ -1,5 +1,5 @@
-import { fireWarmth, teaWarmth } from './rhythms.js?v=66';
-import { art, scenes } from './world.js?v=66';
+import { fireWarmth, teaWarmth } from './rhythms.js?v=67';
+import { art, scenes } from './world.js?v=67';
 export class CabinRenderer {
   constructor(scene,weather) {
     this.scene=scene;this.canvas=weather;this.ctx=weather.getContext('2d');
