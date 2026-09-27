@@ -41,7 +41,7 @@ const errors=[];
     assert.ok(await page.locator('#reading').evaluate(e=>e.classList.contains('firelit')));
     await page.screenshot({path:'reading-checks/firelight.png'});
     // Fullscreen uses the stage, which contains the dialog.
-    await page.keyboard.press('f');assert.ok(await page.evaluate(()=>!!document.fullscreenElement));await page.keyboard.press('f');
+    await page.keyboard.press('f');await page.waitForFunction(()=>!!document.fullscreenElement);await page.keyboard.press('f');await page.waitForFunction(()=>!document.fullscreenElement);
     await page.keyboard.press('Escape');await page.keyboard.press('Escape');
     // Notebook and clock route still exist.
     await page.locator('[data-action=book]').click();await page.locator('#next-page').click();await page.keyboard.press('Escape');await page.locator('[data-action=clockView]').click();await page.locator('[data-id=clock]').waitFor();await page.locator('#back').click();

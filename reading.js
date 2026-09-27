@@ -67,7 +67,7 @@ export class CabinReading {
       if(!data){const response=await fetch(`assets/books/${spec.id}.json`);if(!response.ok)throw Error();data=await response.json();if(typeof data.text!=='string'||data.id!==spec.id)throw Error();this.cache.set(spec.id,data)}
       if(token!==this.token||!this.active)return;
       this.data=data;this.position=Math.min(this.memory.reading[spec.id]??-1,data.text.length-1);this.history=[];
-      this.sound('page');this.render();
+      this.sound('page');this.render();this.next.focus();
     }catch{if(token===this.token){this.leaves[0].textContent='This book has not reached the cabin yet. Connect once, then pick it up again.';}}
   }
   // Build safe DOM only. Paragraphs and verse survive; no publisher HTML runs in the cabin.

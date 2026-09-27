@@ -8,7 +8,7 @@
 .book-spine{position:relative;min-width:0;height:var(--book-height);padding:20px 7px 14px;border:0;border-radius:3px 5px 2px 2px;background:linear-gradient(90deg,#0006,transparent 14%,#ffffff0b 45%,#0005),var(--binding);color:#e8d5a5;box-shadow:inset 2px 0 2px #ffffff13,3px 0 5px #0008;transition:transform .2s;display:flex;align-items:center;gap:16px;writing-mode:vertical-rl;text-align:left}
 .book-spine::before,.book-spine::after{content:'';position:absolute;left:9%;right:9%;height:3px;border-block:1px solid #e0c78b55;top:10px}.book-spine::after{top:auto;bottom:9px}
 .book-spine span{font-size:clamp(14px,1.5vw,18px);letter-spacing:.035em;flex:1}.book-spine small{font-size:11px;opacity:.8}
-.book-spine:hover,.book-spine:focus-visible{transform:translateY(-12px);outline:2px solid #dcc696;outline-offset:2px}
+#reading .book-spine:hover,#reading .book-spine:focus-visible{background:linear-gradient(90deg,#0006,transparent 14%,#ffffff0b 45%,#0005),var(--binding);transform:translateY(-12px);outline:2px solid #dcc696;outline-offset:2px}
 .shelf-return{border:0;background:none;color:#dfcda9;margin-top:22px;padding:5px 22px;font-size:16px}
 #reading.is-novel{width:min(1060px,94vw);color:#362a1e;filter:drop-shadow(0 22px 35px #000a)}
 .novel-view{position:relative;padding:39px 0 54px;background:#e6d8b8;border:8px solid #4b4533;border-radius:5px;animation:book-arrival .3s ease-out}

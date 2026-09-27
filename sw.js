@@ -1,14 +1,14 @@
 const CACHE='cozy-cabin-shell-v68';
 const BOOK_CACHE='cozy-cabin-books-v1';
 const BOOKS=['./assets/books/willows.json', './assets/books/oz.json', './assets/books/garden.json', './assets/books/alice.json', './assets/books/frankenstein.json', './assets/books/little-women.json', './assets/books/dracula.json', './assets/books/time-machine.json', './assets/books/sleepy-hollow.json', './assets/books/anne.json', './assets/books/poe.json', './assets/books/holmes.json'];
-const SHELL=['./','./index.html','./style.css?v=68','./app.js?v=68','./manifest.webmanifest','./assets/pwa-icon.svg','./reading.css?v=68','./telescope.js?v=68','./rhythms.js?v=68','./telescope-world.js?v=68','./clock.js?v=68','./state.js?v=68','./reading.js?v=68','./world.js?v=68','./living-details.js?v=68','./renderer.js?v=68','./stories.js?v=68','./shore-life.js?v=68','./library.js?v=68','./discoveries.js?v=68','./audio.js?v=68','./input.js?v=68'];
+const SHELL=['./','./index.html','./style.css?v=68','./app.js?v=68','./manifest.webmanifest','./assets/pwa-icon.svg','./assets/living-room.png','./assets/scenes/room-unlit.webp','./assets/audio/fireplace-loop.mp3','./assets/audio/winter-wind-loop.mp3','./reading.css?v=68','./telescope.js?v=68','./rhythms.js?v=68','./telescope-world.js?v=68','./clock.js?v=68','./state.js?v=68','./reading.js?v=68','./world.js?v=68','./living-details.js?v=68','./renderer.js?v=68','./stories.js?v=68','./shore-life.js?v=68','./library.js?v=68','./discoveries.js?v=68','./audio.js?v=68','./input.js?v=68'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(
     caches.open(CACHE)
       .then(cache=>cache.addAll(SHELL))
       .then(()=>caches.open(BOOK_CACHE))
-      .then(cache=>cache.addAll(BOOKS))
+      .then(cache=>Promise.all(BOOKS.map(async path=>{if(!await cache.match(path))await cache.add(path)})))
       .then(()=>self.skipWaiting())
   );
 });
