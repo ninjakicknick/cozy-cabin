@@ -1,5 +1,5 @@
-import { cabinAt } from './discoveries.js?v=67';
-import { clockLabel } from './clock.js?v=67';
+import { cabinAt } from './discoveries.js?v=68';
+import { clockLabel } from './clock.js?v=68';
 // Scene coordinates are percentages in the original artwork, independent of screen size.
 // A scene owns its exits and objects; input devices all use the same definitions.
 const spot = (id, label, x, y, target, kind = 'go', extra = {}) => ({id,label,x,y,[kind]:target,...extra});
@@ -24,7 +24,7 @@ export const scenes = {
     spot('kitchen','Turn toward the kitchen',50,94,'kitchen','go',{edge:true,w:18,h:10})]},
   chair:{art:'chair',label:'In the armchair',parent:'room',default:'floor',rest:true,spots:[spot('floor','Lie by the fire',55,80,'floor','go',{w:30,h:25})]},
   floor:{art:'floor',label:'Beside the fire',parent:'chair',rest:true,actions:['tend','pet']},
-  books:{art:'room',label:'At the bookshelf',parent:'room',zoom:[1.9,10,31],actions:['book','clockView']},
+  books:{art:'room',label:'At the bookshelf',parent:'room',zoom:[1.9,10,31],actions:['shelf','book','clockView']},
   fire:{art:'room',label:'At the fireplace',parent:'room',zoom:[2.18,24,60],actions:['tend']},
   window:{art:'room',label:'At the window',parent:'room',zoom:[1.75,62,28],rest:true,actions:['window','look']},
   windowLake:{art:'porch',label:'Through the living-room window',parent:'window',zoom:[3,68,45],rest:true,actions:['listen']},
@@ -73,7 +73,7 @@ export function visibleSpots(view,memory={}){
 export function baseArt(view){ return scenes[view]?.art || 'room'; }
 export function actionLabel(id,m,now=Date.now()) {
   if(id==='clock')return clockLabel(m);
-  return ({enterSecret:'Step through the opening',closePanel:'Close the panel',clockView:'Look beside the shelves',lantern:m.lanternTurning?'Let the lantern rest':'Turn the lantern',toneLow:'Pluck the low tine',toneMiddle:'Pluck the middle tine',toneHigh:'Pluck the high tine',book:'Open the clothbound book',tend:m.emberUntil>now?'Let the fire settle':'Add a log',pet:'Pet the cat',
+  return ({enterSecret:'Step through the opening',closePanel:'Close the panel',clockView:'Look beside the shelves',lantern:m.lanternTurning?'Let the lantern rest':'Turn the lantern',toneLow:'Pluck the low tine',toneMiddle:'Pluck the middle tine',toneHigh:'Pluck the high tine',shelf:'Choose a book',book:'Open the cabin notebook',tend:m.emberUntil>now?'Let the fire settle':'Add a log',pet:'Pet the cat',
     window:m.windowOpen?'Close the window':'Crack the window',look:'Look out toward the lake',
     record:m.recordOn?'Lift the needle':'Lower the needle',flip:'Turn the record over',blanket:m.blanket?'Fold back the blanket':'Pull the blanket around you',
     sip:'Take a sip',listen:'Listen',quilt:m.quilt?'Fold back the quilt':'Pull up the quilt',scope:'Adjust the focus',musicbox:m.musicbox?'Let it wind down':'Wind the little music box'})[id] || id;

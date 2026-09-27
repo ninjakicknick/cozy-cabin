@@ -1,5 +1,5 @@
-import { propagation, soundOrigins, fireWarmth } from './rhythms.js?v=67';
-import { baseArt } from './world.js?v=67';
+import { propagation, soundOrigins, fireWarmth } from './rhythms.js?v=68';
+import { baseArt } from './world.js?v=68';
 // Loop seams are blended once in the decoded buffer. Native Web Audio looping
 // continues without animation frames, media events, or just-in-time JS timers.
 export function loopSamples(input, overlap) {

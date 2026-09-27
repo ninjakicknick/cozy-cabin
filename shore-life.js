@@ -1,4 +1,4 @@
-import {hash} from './discoveries.js?v=67';
+import {hash} from './discoveries.js?v=68';
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 // Each track owns a different physical place. Seed + absolute time define every
 // interval, including its aftermath; entering a view cannot summon or reroll it.

@@ -1,5 +1,5 @@
-import {shoreLifeAt} from './shore-life.js?v=67';
-import {SHORE,aim,clamp,shoreAt,telescopeAxes} from './telescope-world.js?v=67';
+import {shoreLifeAt} from './shore-life.js?v=68';
+import {SHORE,aim,clamp,shoreAt,telescopeAxes} from './telescope-world.js?v=68';
 const lifeSprites=['carrying','sitting','waving','celebration','snowman','sled','deer','hare'];
 const spriteNames=['walking','standing','dancing','fox','owl','paper-boat'];
 export class Telescope {

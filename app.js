@@ -1,15 +1,16 @@
-import { LivingDetails } from './living-details.js?v=67';
-import { createAttention, disturb, advanceDiscovery, touchDiscovery, cabinAt, catAt } from './discoveries.js?v=67';
-import { shoreLifeAt } from './shore-life.js?v=67';
-import { Telescope } from './telescope.js?v=67';
-import { clockAction, canEnter } from './clock.js?v=67';
-import { teaWarmth, rememberTea } from './rhythms.js?v=67';
-import { CabinAudio } from './audio.js?v=67';
-import { scenes,actionLabel,visibleSpots } from './world.js?v=67';
-import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=67';
-import { gamepadCommands } from './input.js?v=67';
-import { CabinRenderer } from './renderer.js?v=67';
-import { notebook,paper as paperContent } from './stories.js?v=67';
+import { CabinReading } from './reading.js?v=68';
+import { LivingDetails } from './living-details.js?v=68';
+import { createAttention, disturb, advanceDiscovery, touchDiscovery, cabinAt, catAt } from './discoveries.js?v=68';
+import { shoreLifeAt } from './shore-life.js?v=68';
+import { Telescope } from './telescope.js?v=68';
+import { clockAction, canEnter } from './clock.js?v=68';
+import { teaWarmth, rememberTea } from './rhythms.js?v=68';
+import { CabinAudio } from './audio.js?v=68';
+import { scenes,actionLabel,visibleSpots } from './world.js?v=68';
+import { readMemory,saveMemory,parentView,neighbor,navigationPoints,kettleState,createVisit,advanceWorld,weatherAt } from './state.js?v=68';
+import { gamepadCommands } from './input.js?v=68';
+import { CabinRenderer } from './renderer.js?v=68';
+import { notebook,paper as paperContent } from './stories.js?v=68';
 const $=s=>document.querySelector(s),stage=$('#stage'),scene=$('#scene'),hotspots=$('#hotspots'),actions=$('#actions');
 const book=$('#book'),paper=$('#paper');let storage;try{storage=new URLSearchParams(location.search).get('testVisit')==='clock'?{getItem:()=>sessionStorage.getItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default')),setItem:(_,v)=>sessionStorage.setItem('cozy-cabin.test.clock.'+(new URLSearchParams(location.search).get('slot')||'default'),v)}:localStorage}catch{}
 const memory=readMemory(storage);memory.visits++;saveMemory(storage,memory);
@@ -23,6 +24,7 @@ const renderer=new CabinRenderer(scene,$('#weather'));
 const details=new LivingDetails(scene);
 const telescope=new Telescope($('#telescope'),memory,()=>wake(),()=>save(true));
 const audio=new CabinAudio(ok=>{stage.dataset.audio=ok?'ready':'retry';$('#sound').title=ok?'Sound · M':'Sound could not start. Tap to retry.'});
+const reading=new CabinReading(stage,memory,{save:()=>save(true),sound:id=>audio.sound(id),modal:open=>{state.modal=open?'reading':null},wake});
 let idleTimer,captionTimer,lastFrame=performance.now(),lastTick=0,petUntil=0,goToken=0,controller={},lastSaveAt=0;
 let lastSaved=JSON.stringify(memory),currentWeather=weatherAt(Date.now(),memory.life.seed);
 function save(force=false){const now=Date.now();if(!force&&now-lastSaveAt<30000)return;memory.life.lastSeen=now;const next=JSON.stringify(memory);if(next!==lastSaved){saveMemory(storage,memory);lastSaved=next}lastSaveAt=now}
@@ -78,10 +80,10 @@ async function go(view){
   finally{if(token===goToken){state.loading=false;stage.removeAttribute('aria-busy');wake()}}
 }
 function closeModal(restore=true){
-  if(book.open)book.close();if(paper.open)paper.close();state.modal=null;
+  if(reading.active)reading.close();if(book.open)book.close();if(paper.open)paper.close();state.modal=null;
   if(restore){wake();document.activeElement?.blur?.()}
 }
-function back(){if(state.modal){closeModal();return}if(state.view!=='room')go(parentView(state.view))}
+function back(){if(reading.active){reading.back();return}if(state.modal){closeModal();return}if(state.view!=='room')go(parentView(state.view))}
 function renderPage(){
   const [title,text]=notebook[state.page];$('#page-title').textContent=title;$('#page-text').textContent=text;
   $('#page-number').textContent=String(state.page+1).padStart(2,'0');$('#previous-page').disabled=state.page===0;$('#next-page').disabled=state.page===notebook.length-1;
@@ -98,6 +100,7 @@ function openPaper(id){
 function activate(item){if(state.loading)return;wake();audio.wake();if(item.go)go(item.go);else perform(item.do)}
 function act(){
   if(state.loading)return;wake();audio.wake();
+  if(reading.active){reading.command('act');return}
   if(state.modal==='book'){turnPage(state.page===notebook.length-1?-state.page:1);return}
   if(state.modal){if(state.modal==='tin'){closeModal();perform('musicbox')}else closeModal();return}
   const spec=scenes[state.view];if(spec.spots&&state.selected?.startsWith('action:')){perform(state.selected.slice(7));return}if(spec.spots?.length){const spots=visibleSpots(state.view,memory);const item=spots.find(s=>s.id===state.selected)||spots.find(s=>s.id===spec.default)||spots[0];if(item)activate(item)}
@@ -135,6 +138,7 @@ async function perform(id){
       break;
     case 'lantern':memory.lanternTurning=!memory.lanternTurning;audio.sound('winding');break;
     case 'toneLow':case 'toneMiddle':case 'toneHigh':audio.sound(id,false);renderer.ring(id);break;
+    case 'shelf':reading.open();break;
     case 'book':state.modal='book';renderPage();book.showModal();$('#next-page').focus();audio.sound('page');break;
     case 'window':memory.windowOpen=!memory.windowOpen;audio.sound('wood');say(memory.windowOpen?'Cold air. The scent of pine.':'Warmth gathers behind the glass.');break;
     case 'look':go('windowLake');break;
@@ -171,6 +175,7 @@ async function perform(id){
 }
 function navigate(dx,dy){
   wake();if(state.loading)return;
+  if(reading.active){reading.command(dx<0?'left':dx>0?'right':dy<0?'up':'down');return}
   if(state.modal==='book'){if(dx)turnPage(dx);return}if(state.modal)return;
   document.activeElement?.blur?.();
   if(state.view==='telescope'){return}

@@ -1,5 +1,5 @@
-import {cabinAt} from './discoveries.js?v=67';
-import {art,scenes} from './world.js?v=67';
+import {cabinAt} from './discoveries.js?v=68';
+import {art,scenes} from './world.js?v=68';
 // One small, lazy layer follows the scene's existing transform and coordinate
 // system. It does not run another animation loop or allocate per-frame textures.
 export class LivingDetails {
