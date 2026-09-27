@@ -1,5 +1,5 @@
 // Private physical memory, not a progress ledger. All dates are bounded on read.
-import { weatherAt } from './rhythms.js?v=67';
+import { weatherAt } from './rhythms.js?v=68';
 export const hash=n=>{n=Math.imul(n^(n>>>16),0x45d9f3b);n=Math.imul(n^(n>>>16),0x45d9f3b);return (n^(n>>>16))>>>0};
 const flags=['foldRead','harmony','skyRemembered','compassAligned'];
 export function readDiscoveries(raw,now=Date.now()){

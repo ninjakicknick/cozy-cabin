@@ -1,0 +1,30 @@
+/* A small clothbound shelf, still surrounded by the cabin. */
+#reading{border:0;padding:0;background:transparent;color:#eddbb2;width:min(1060px,94vw);max-width:none;max-height:94dvh;overflow:visible;font-family:Georgia,'Times New Roman',serif}
+#reading::backdrop{background:#09060388;backdrop-filter:blur(2px)}
+#reading [hidden]{display:none!important}
+.shelf-view{padding:24px 24px 12px;background:linear-gradient(90deg,#211209ee,#432819e8 45%,#211209ee);box-shadow:0 20px 70px #000a;border:9px solid #422919;border-radius:3px;text-align:center;animation:book-arrival .28s ease-out}
+.shelf-label{font-weight:normal;font-size:18px;letter-spacing:.09em;margin:0 0 24px;color:#d9c49e}
+.book-row{height:min(365px,56dvh);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));align-items:end;border-bottom:15px solid #563720;box-shadow:0 10px 12px #0008;gap:3px;padding:0 6px;background:linear-gradient(#100a06aa,#20120833)}
+.book-spine{position:relative;min-width:0;height:var(--book-height);padding:20px 7px 14px;border:0;border-radius:3px 5px 2px 2px;background:linear-gradient(90deg,#0006,transparent 14%,#ffffff0b 45%,#0005),var(--binding);color:#e8d5a5;box-shadow:inset 2px 0 2px #ffffff13,3px 0 5px #0008;transition:transform .2s;display:flex;align-items:center;gap:16px;writing-mode:vertical-rl;text-align:left}
+.book-spine::before,.book-spine::after{content:'';position:absolute;left:9%;right:9%;height:3px;border-block:1px solid #e0c78b55;top:10px}.book-spine::after{top:auto;bottom:9px}
+.book-spine span{font-size:clamp(14px,1.5vw,18px);letter-spacing:.035em;flex:1}.book-spine small{font-size:11px;opacity:.8}
+#reading .book-spine:hover,#reading .book-spine:focus-visible{background:linear-gradient(90deg,#0006,transparent 14%,#ffffff0b 45%,#0005),var(--binding);transform:translateY(-12px);outline:2px solid #dcc696;outline-offset:2px}
+.shelf-return{border:0;background:none;color:#dfcda9;margin-top:22px;padding:5px 22px;font-size:16px}
+#reading.is-novel{width:min(1060px,94vw);color:#362a1e;filter:drop-shadow(0 22px 35px #000a)}
+.novel-view{position:relative;padding:39px 0 54px;background:#e6d8b8;border:8px solid #4b4533;border-radius:5px;animation:book-arrival .3s ease-out}
+.novel-spread{display:grid;grid-template-columns:1fr 1fr;height:min(64dvh,640px);min-height:110px}
+.novel-leaf{min-width:0;padding:12px clamp(24px,4vw,58px);background:linear-gradient(90deg,#ecdfc4,#f1e5ca 86%,#b5a585);overflow:hidden}
+.second-leaf{background:linear-gradient(90deg,#af9e7f,#eaddc0 9%,#efe2c5)}
+.novel-text{height:100%;overflow:auto;font-size:clamp(17px,1.6vw,20px);line-height:1.65;scrollbar-width:thin;overflow-wrap:break-word}
+.novel-text p{margin:0 0 .55em;white-space:pre-line;text-indent:1.1em}.novel-text p.continued{ text-indent:0 }
+.novel-text h2{font-size:1.15em;text-align:center;font-weight:normal;margin:.5em 0 1em;line-height:1.4;white-space:pre-line}
+.running-title{position:absolute;top:12px;left:36px;right:36px;text-align:center;font-size:12px;letter-spacing:.1em;font-variant:small-caps;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#766347}
+.novel-view nav{position:absolute;bottom:3px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:center}
+.novel-view button{background:transparent;border:0;color:#655137;padding:8px 18px;font-size:24px}.novel-view .novel-close{font-size:14px;letter-spacing:.04em}.novel-view button:disabled{opacity:.18;cursor:default}.novel-view button:focus-visible,.shelf-return:focus-visible{outline:2px solid #9f7845;outline-offset:0}
+.book-ribbon{position:absolute;top:-8px;right:8%;width:13px;height:55px;background:#8a3e32;clip-path:polygon(0 0,100% 0,100% 100%,50% 86%,0 100%);opacity:.85;pointer-events:none}
+.novel-title-page{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 10px}.novel-title-page h1{font-size:clamp(26px,3vw,40px);font-weight:normal;line-height:1.35;margin:0 0 35px}.novel-title-page p{text-indent:0;font-size:18px;font-variant:small-caps}
+#reading.firelit .novel-view{background:#d9bd88;color:#322315}#reading.firelit .novel-leaf{background:linear-gradient(105deg,#e7cda0,#dec59a 85%,#a38760)}#reading.firelit .second-leaf{background:linear-gradient(90deg,#a38760,#e3cba2 10%,#ebd5af)}
+@keyframes book-arrival{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:600px){#reading{width:94vw}.shelf-view{padding:14px 12px 4px;border-width:6px}.shelf-label{margin-bottom:16px}.book-row{height:min(64dvh,540px);grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:1fr 1fr;row-gap:17px;border-bottom-width:9px}.book-spine{height:100%;padding-top:16px;gap:5px}.book-spine span{font-size:14px}.book-spine small{display:none}.shelf-return{margin-top:12px}.novel-spread{grid-template-columns:1fr;height:72dvh}.second-leaf{display:none}.novel-leaf{padding:12px 23px}.novel-text{font-size:18px;line-height:1.6}.novel-view{border-width:5px}.book-ribbon{right:6%;width:10px;height:44px}}
+@media(max-height:500px){.shelf-view{padding:10px 16px 4px}.shelf-label{margin-bottom:12px;font-size:15px}.book-row{height:58dvh}.book-spine small{display:none}.shelf-return{margin-top:8px}.novel-spread{height:calc(94dvh - 95px)}.novel-view{padding-top:30px;padding-bottom:48px}.novel-leaf{padding-top:5px;padding-bottom:5px}.novel-text{font-size:17px;line-height:1.5}.novel-title-page h1{font-size:25px;margin-bottom:15px}}
+@media(prefers-reduced-motion:reduce){#reading *{animation:none!important;transition:none!important}}
