@@ -4,6 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const server=spawn('python3',['-m','http.server','8080'],{stdio:'ignore'});
 const errors=[];
+const workerSource=fs.readFileSync('sw.js','utf8');
 (async()=>{
   fs.mkdirSync('reading-checks',{recursive:true});
   for(let i=0;i<50;i++){try{await fetch('http://127.0.0.1:8080');break}catch{await new Promise(r=>setTimeout(r,100))}}
@@ -54,6 +55,25 @@ const errors=[];
     await page.evaluate(()=>navigator.serviceWorker.ready);await page.reload();await page.waitForSelector('[data-id=books]');
     await context.setOffline(true);await page.reload();await enter();await open(4);await page.keyboard.press('ArrowRight');assert.ok((await page.locator('.novel-text').first().innerText()).length>100);
     await page.screenshot({animations:'disabled',path:'reading-checks/offline-unread-book.png'});
-    assert.deepEqual(errors,[]);fs.writeFileSync('reading-checks/result.json',JSON.stringify({passed:true,errors,checks:['independent bookmarks','reload','previous after reload','responsive portrait/landscape','lights off','fullscreen','notebook','clock route','synthetic gamepad','offline reload and unread book']},null,2));
+    // Exercise the existing automatic update/reload with bookmarks and offline books intact.
+    const beforeUpdate=await saved();await context.setOffline(false);
+    fs.writeFileSync('sw.js',workerSource.replace('cozy-cabin-shell-v68','cozy-cabin-shell-v68-update-check'));
+    await page.evaluate(async()=>{await (await navigator.serviceWorker.getRegistration()).update()});
+    await page.waitForFunction(async()=>!(await caches.keys()).includes('cozy-cabin-shell-v68'));
+    await page.waitForSelector('[data-id=books]');assert.deepEqual(await saved(),beforeUpdate);
+    await context.setOffline(true);await enter();await open(10);await page.keyboard.press('ArrowRight');
+    assert.ok((await page.locator('.novel-text').first().innerText()).length>100);
+    // Actual touchscreen events, with no keyboard or mouse needed.
+    const touchContext=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+    const touchPage=await touchContext.newPage();touchPage.on('pageerror',e=>errors.push(e.message));
+    await touchPage.goto('http://127.0.0.1:8080');
+    await touchPage.locator('[data-id=books]').tap();await touchPage.locator('[data-action=shelf]').tap();
+    await touchPage.locator('.book-spine').first().tap();await touchPage.waitForFunction(()=>!document.querySelector('.novel-next').disabled);
+    await touchPage.locator('.novel-next').tap();await touchPage.locator('.novel-next').tap();
+    const touchPosition=await touchPage.evaluate(()=>JSON.parse(localStorage.getItem('cozy-cabin.memory.v1')).reading.willows);assert.ok(touchPosition>0);
+    await touchPage.locator('.novel-close').tap();await touchPage.locator('.shelf-return').tap();
+    assert.equal(await touchPage.locator('#reading').evaluate(e=>e.open),false);
+    await touchContext.close();
+    assert.deepEqual(errors,[]);fs.writeFileSync('reading-checks/result.json',JSON.stringify({passed:true,errors,checks:['independent bookmarks','reload','previous after reload','responsive portrait/landscape','lights off','fullscreen','notebook','clock route','synthetic gamepad','offline reload and unread book','service worker update and bookmark retention','touch open/page/close']},null,2));
   }finally{await browser.close()}
-})().catch(e=>{fs.writeFileSync('reading-checks/failure.txt',String(e.stack));console.error(e);process.exitCode=1}).finally(()=>server.kill());
+})().catch(e=>{fs.writeFileSync('reading-checks/failure.txt',String(e.stack));console.error(e);process.exitCode=1}).finally(()=>{fs.writeFileSync('sw.js',workerSource);server.kill()});
