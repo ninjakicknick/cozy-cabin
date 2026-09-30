@@ -13,7 +13,7 @@ function slot(now,seed,period,salt,pool){
 export function shoreLifeAt(now,seed=1,m={}){
  const hour=new Date(now).getHours();
  const homePool=hour<6?['pass','reading','curtains','lamp','watching','upstairs','nothing','nothing','nothing','nothing','visitor','nothing']:home;
- const household=slot(now,seed,480000,201,homePool),outdoor=slot(now,seed,780000,401,shore),wildlife=slot(now,seed,1020000,601,wild),sky=slot(now,seed,2700000,801,['clear','clear','clear','clear','aurora','meteor','clear','clear']);
+ const household=slot(now,seed,180000,201,homePool),outdoor=slot(now,seed,300000,401,shore),wildlife=slot(now,seed,420000,601,wild),sky=slot(now,seed,2700000,801,['clear','clear','clear','clear','aurora','meteor','clear','clear']);
  const actors=[],props=[],p=outdoor.progress,h=household.progress;
  const add=(sprite,x,y,height,extra={})=>actors.push({sprite,x,y,height,...extra});
  if(outdoor.active){
@@ -32,7 +32,7 @@ export function shoreLifeAt(now,seed=1,m={}){
  }
  // Remains until the following outing, including across a closed browser.
  for(let i=0;i<4;i++){
-  const prior=slot(now-i*780000,seed,780000,401,shore);
+  const prior=slot(now-i*300000,seed,300000,401,shore);
   if(prior.kind==='snowman'&&now>prior.start+prior.duration*.45&&now<prior.start+3000000){props.push({kind:'snowman',x:1383,y:516,alpha:Math.min(1,(now-prior.start-prior.duration*.45)/15000)});break}
  }
  if(household.active){const alpha=household.alpha;
